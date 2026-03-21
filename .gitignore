@@ -1,0 +1,75 @@
+# Build outputs
+bin/
+obj/
+out/
+publish/
+
+# Rider
+.idea/
+*.sln.iml
+
+# VS Code
+.vscode/
+.history/
+
+# User-specific files
+*.user
+*.suo
+*.userprefs
+*.userosscache
+*.sln.docstates
+*.vs/
+
+# NuGet packages
+*.nupkg
+# The packages folder can be ignored because of PackageReference restore
+**/packages/
+
+# MSBuild temporary
+*.log
+*.vspscc
+*.vssscc
+*.tpconfig
+*.cache
+*.ilk
+*.pdb
+*.exe
+*.dll
+*.cache
+*.csproj.user
+*.dbmdl
+*.bak
+*.Backup
+*.tmp
+
+# Publish output
+publish/
+tmp/
+artifacts/
+
+# NuGet restore
+*.nuget.props
+*.nuget.targets
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# dotCover
+*.dotCover
+*.dotCover.*
+*.coverage
+*.coveragexml
+
+# User profile / local settings
+local.settings.json
+appsettings.Development.json
+
+# JetBrains Rider
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# debug
+*.log

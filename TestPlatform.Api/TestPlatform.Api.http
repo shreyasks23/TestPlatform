@@ -1,0 +1,134 @@
+@HostAddress = http://localhost:5209
+@TestId = replace-with-created-test-id
+@UserId1 = 11111111-1111-1111-1111-111111111111
+@UserId2 = 22222222-2222-2222-2222-222222222222
+@UserId3 = 33333333-3333-3333-3333-333333333333
+@Question1Id = replace-with-created-question-1-id
+@Question1Option1Id = replace-with-question-1-option-1-id
+@Question1Option2Id = replace-with-question-1-option-2-id
+@Question2Id = replace-with-created-question-2-id
+@Question2Option1Id = replace-with-question-2-option-1-id
+@Question2Option2Id = replace-with-question-2-option-2-id
+
+POST {{HostAddress}}/api/tests
+Content-Type: application/json
+Accept: application/json
+
+{
+  "title": "C# Collections"
+}
+
+###
+
+POST {{HostAddress}}/api/tests/{{TestId}}/questions
+Content-Type: application/json
+Accept: application/json
+
+{
+  "text": "Which collection preserves insertion order?",
+  "options": [
+    {
+      "text": "Dictionary"
+    },
+    {
+      "text": "List"
+    },
+    {
+      "text": "HashSet"
+    }
+  ],
+  "correctOptionIndex": 1
+}
+
+###
+
+POST {{HostAddress}}/api/tests/{{TestId}}/questions
+Content-Type: application/json
+Accept: application/json
+
+{
+  "text": "Which keyword makes a derived override mandatory?",
+  "options": [
+    {
+      "text": "virtual"
+    },
+    {
+      "text": "abstract"
+    },
+    {
+      "text": "override"
+    }
+  ],
+  "correctOptionIndex": 1
+}
+
+###
+
+GET {{HostAddress}}/api/tests
+Accept: application/json
+
+###
+
+GET {{HostAddress}}/api/tests/{{TestId}}
+Accept: application/json
+
+###
+
+# Successful submission
+POST {{HostAddress}}/api/tests/{{TestId}}/submit
+Content-Type: application/json
+Accept: application/json
+
+{
+  "userId": "{{UserId1}}",
+  "answers": [
+    {
+      "questionId": "{{Question1Id}}",
+      "selectedOptionId": "{{Question1Option1Id}}"
+    },
+    {
+      "questionId": "{{Question2Id}}",
+      "selectedOptionId": "{{Question2Option2Id}}"
+    }
+  ]
+}
+
+###
+
+# Duplicate answer for the same question, expected validation failure
+POST {{HostAddress}}/api/tests/{{TestId}}/submit
+Content-Type: application/json
+Accept: application/json
+
+{
+  "userId": "{{UserId2}}",
+  "answers": [
+    {
+      "questionId": "{{Question1Id}}",
+      "selectedOptionId": "{{Question1Option1Id}}"
+    },
+    {
+      "questionId": "{{Question1Id}}",
+      "selectedOptionId": "{{Question1Option2Id}}"
+    }
+  ]
+}
+
+###
+
+# Partial submission, expected bad request
+POST {{HostAddress}}/api/tests/{{TestId}}/submit
+Content-Type: application/json
+Accept: application/json
+
+{
+  "userId": "{{UserId3}}",
+  "answers": [
+    {
+      "questionId": "{{Question1Id}}",
+      "selectedOptionId": "{{Question1Option2Id}}"
+    }
+  ]
+}
+
+###
