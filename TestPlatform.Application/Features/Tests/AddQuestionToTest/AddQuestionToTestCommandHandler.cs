@@ -28,6 +28,7 @@ public sealed class AddQuestionToTestCommandHandler(
             throw new InvalidOperationException("Deleted questions cannot be attached to tests");
 
         test.AddQuestion(question.Id);
+        await testRepository.UpdateAsync(test, cancellationToken);
 
         return new AddQuestionToTestResultDto(
             test.Id,

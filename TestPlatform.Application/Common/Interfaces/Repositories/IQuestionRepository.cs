@@ -8,5 +8,6 @@ public interface IQuestionRepository
     Task<IReadOnlyList<Question>> GetAllActiveAsync(CancellationToken cancellationToken);
     Task<Question?> GetByIdAsync(Guid questionId, CancellationToken cancellationToken);
     Task<IReadOnlyList<Question>> GetByIdsAsync(IEnumerable<Guid> questionIds, CancellationToken cancellationToken);
+    Task<bool> ExistsAsync(Guid questionId, CancellationToken cancellationToken);
     Task UpdateAsync(Question question, CancellationToken cancellationToken);
 }

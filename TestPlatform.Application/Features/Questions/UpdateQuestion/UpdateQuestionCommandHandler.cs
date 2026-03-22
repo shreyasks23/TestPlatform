@@ -21,7 +21,9 @@ public sealed class UpdateQuestionCommandHandler(
             throw new EntityNotFoundException(nameof(Question), request.QuestionId);
 
         var options = request.Options
-            .Select(option => new Option(option.Text))
+            .Select(option => option.Id.HasValue
+                ? new Option(option.Id.Value, option.Text)
+                : new Option(option.Text))
             .ToArray();
 
         question.Update(

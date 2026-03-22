@@ -1,3 +1,5 @@
+using TestPlatform.Domain.Entities;
+
 namespace TestPlatform.Domain.Aggregates;
 
 public sealed class Test
@@ -5,8 +7,12 @@ public sealed class Test
     public Guid Id { get; } = Guid.CreateVersion7();
     public string Title { get; private set; } = null!;
 
-    private readonly List<Guid> _questionIds = [];
-    public IReadOnlyList<Guid> QuestionIds => _questionIds.AsReadOnly();
+    private readonly List<TestQuestionReference> _questionReferences = [];
+    public IReadOnlyList<TestQuestionReference> QuestionReferences => _questionReferences.AsReadOnly();
+    public IReadOnlyList<Guid> QuestionIds => _questionReferences
+        .OrderBy(reference => reference.Order)
+        .Select(reference => reference.QuestionId)
+        .ToArray();
 
     private Test() { }
 
@@ -17,14 +23,22 @@ public sealed class Test
             : title;
     }
 
+    public Test(Guid id, string title) : this(title)
+    {
+        if (id == Guid.Empty)
+            throw new ArgumentException("Test ID cannot be empty", nameof(id));
+
+        Id = id;
+    }
+
     public void AddQuestion(Guid questionId)
     {
         if (questionId == Guid.Empty)
             throw new ArgumentException("Question ID cannot be empty", nameof(questionId));
 
-        if (_questionIds.Contains(questionId))
+        if (_questionReferences.Any(reference => reference.QuestionId == questionId))
             throw new InvalidOperationException("Question already added to test");
 
-        _questionIds.Add(questionId);
+        _questionReferences.Add(new TestQuestionReference(questionId, _questionReferences.Count));
     }
 }

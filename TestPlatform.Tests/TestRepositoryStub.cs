@@ -21,4 +21,7 @@ internal sealed class TestRepositoryStub(params IEnumerable<Test> seededTests) :
 
     public Task<Test?> GetByIdAsync(Guid testId, CancellationToken cancellationToken)
         => Task.FromResult(_tests.SingleOrDefault(test => test.Id == testId));
+
+    public Task UpdateAsync(Test test, CancellationToken cancellationToken)
+        => Task.CompletedTask;
 }
