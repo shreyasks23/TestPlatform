@@ -26,6 +26,20 @@ public sealed class Question
         Update(text, options, correctOptionId, explanationText);
     }
 
+    public Question(
+        Guid id,
+        string text,
+        IReadOnlyCollection<Option> options,
+        Guid correctOptionId,
+        string explanationText)
+    {
+        if (id == Guid.Empty)
+            throw new ArgumentException("Question ID cannot be empty", nameof(id));
+
+        Id = id;
+        Update(text, options, correctOptionId, explanationText);
+    }
+
     public void Update(
         string text,
         IReadOnlyCollection<Option> options,
@@ -42,15 +56,33 @@ public sealed class Question
             ? throw new ArgumentException("Explanation text cannot be empty", nameof(explanationText))
             : explanationText;
 
-        _options.Clear();
-        _options.AddRange(options);
-
-        if (_options.Count < 2)
+        var requestedOptions = options.ToArray();
+        if (requestedOptions.Length < 2)
             throw new InvalidOperationException("A question must have at least 2 options");
 
-        if (!_options.Any(o => o.Id == correctOptionId))
+        if (!requestedOptions.Any(o => o.Id == correctOptionId))
             throw new InvalidOperationException("Correct option must exist");
 
+        var requestedIds = requestedOptions.Select(option => option.Id).ToHashSet();
+
+        _options.RemoveAll(option => !requestedIds.Contains(option.Id));
+
+        for (var index = 0; index < requestedOptions.Length; index++)
+        {
+            var requestedOption = requestedOptions[index];
+            var existingOption = _options.SingleOrDefault(option => option.Id == requestedOption.Id);
+
+            if (existingOption is null)
+            {
+                requestedOption.Update(requestedOption.Text, index);
+                _options.Add(requestedOption);
+                continue;
+            }
+
+            existingOption.Update(requestedOption.Text, index);
+        }
+
+        _options.Sort((left, right) => left.Order.CompareTo(right.Order));
         CorrectOptionId = correctOptionId;
     }
 

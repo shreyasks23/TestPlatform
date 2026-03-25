@@ -13,15 +13,18 @@ public sealed class SubmitTestCommandHandlerTests
     public async Task Handle_WhenAnswersAreCorrect_ReturnsEvaluatedResultWithExplanations()
     {
         var (test, questions) = BuildTestAndQuestions();
+        var userId = Guid.Parse("00000000-0000-0000-0000-920000000001");
+        var userRepository = new UserRepositoryStub([new User(userId, "ada@example.com", "Ada", "Lovelace")]);
         var handler = new SubmitTestCommandHandler(
             new TestRepositoryStub([test]),
             new QuestionRepositoryStub(questions),
+            userRepository,
             new FakeTestAttemptRepository(),
             new SubmitTestCommandValidator());
 
         var command = new SubmitTestCommand(
             test.Id,
-            Guid.CreateVersion7(),
+            userId,
             questions
                 .Select(question => new SubmitTestAnswerDto(question.Id, question.CorrectOptionId))
                 .ToArray());
@@ -39,6 +42,7 @@ public sealed class SubmitTestCommandHandlerTests
         var handler = new SubmitTestCommandHandler(
             new TestRepositoryStub([]),
             new QuestionRepositoryStub([]),
+            new UserRepositoryStub([]),
             new FakeTestAttemptRepository(),
             new SubmitTestCommandValidator());
 
@@ -56,15 +60,18 @@ public sealed class SubmitTestCommandHandlerTests
     {
         var (test, questions) = BuildTestAndQuestions();
         var question = questions[0];
+        var userId = Guid.Parse("00000000-0000-0000-0000-920000000002");
+        var userRepository = new UserRepositoryStub([new User(userId, "grace@example.com", "Grace", "Hopper")]);
         var handler = new SubmitTestCommandHandler(
             new TestRepositoryStub([test]),
             new QuestionRepositoryStub(questions),
+            userRepository,
             new FakeTestAttemptRepository(),
             new SubmitTestCommandValidator());
 
         var command = new SubmitTestCommand(
             test.Id,
-            Guid.CreateVersion7(),
+            userId,
             [
                 new SubmitTestAnswerDto(question.Id, question.Options[0].Id),
                 new SubmitTestAnswerDto(question.Id, question.Options[1].Id)
@@ -78,9 +85,12 @@ public sealed class SubmitTestCommandHandlerTests
     {
         var (test, questions) = BuildTestAndQuestions();
         var firstQuestion = questions[0];
+        var userId = Guid.Parse("00000000-0000-0000-0000-920000000003");
+        var userRepository = new UserRepositoryStub([new User(userId, "alan@example.com", "Alan", "Turing")]);
         var handler = new SubmitTestCommandHandler(
             new TestRepositoryStub([test]),
             new QuestionRepositoryStub(questions),
+            userRepository,
             new FakeTestAttemptRepository(),
             new SubmitTestCommandValidator());
 
@@ -88,7 +98,7 @@ public sealed class SubmitTestCommandHandlerTests
             handler.Handle(
                 new SubmitTestCommand(
                     test.Id,
-                    Guid.CreateVersion7(),
+                    userId,
                     [new SubmitTestAnswerDto(firstQuestion.Id, firstQuestion.CorrectOptionId)]),
                 CancellationToken.None));
     }
@@ -99,9 +109,12 @@ public sealed class SubmitTestCommandHandlerTests
         var (test, questions) = BuildTestAndQuestions();
         var firstQuestion = questions[0];
         var secondQuestion = questions[1];
+        var userId = Guid.Parse("00000000-0000-0000-0000-920000000004");
+        var userRepository = new UserRepositoryStub([new User(userId, "donald@example.com", "Donald", "Knuth")]);
         var handler = new SubmitTestCommandHandler(
             new TestRepositoryStub([test]),
             new QuestionRepositoryStub(questions),
+            userRepository,
             new FakeTestAttemptRepository(),
             new SubmitTestCommandValidator());
 
@@ -109,7 +122,7 @@ public sealed class SubmitTestCommandHandlerTests
             handler.Handle(
                 new SubmitTestCommand(
                     test.Id,
-                    Guid.CreateVersion7(),
+                    userId,
                     [
                         new SubmitTestAnswerDto(firstQuestion.Id, secondQuestion.Options[0].Id),
                         new SubmitTestAnswerDto(secondQuestion.Id, secondQuestion.CorrectOptionId)

@@ -14,7 +14,7 @@ public sealed class CreateQuestionCommandHandlerTests
         var result = await handler.Handle(
             new CreateQuestionCommand(
                 "What does sealed do?",
-                [new("Allows inheritance"), new("Prevents inheritance")],
+                [new(null, "Allows inheritance"), new(null, "Prevents inheritance")],
                 1,
                 "sealed prevents a class from being inherited."),
             CancellationToken.None);
@@ -34,7 +34,7 @@ public sealed class CreateQuestionCommandHandlerTests
             handler.Handle(
                 new CreateQuestionCommand(
                     "Question",
-                    [new("A"), new("B")],
+                    [new(null, "A"), new(null, "B")],
                     0,
                     string.Empty),
                 CancellationToken.None));

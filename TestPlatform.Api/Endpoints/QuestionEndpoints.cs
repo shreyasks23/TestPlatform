@@ -49,7 +49,7 @@ internal static class QuestionEndpoints
             var result = await sender.Send(
                 new CreateQuestionCommand(
                     request.Text,
-                    request.Options.Select(option => new QuestionOptionInputDto(option.Text)).ToArray(),
+                    request.Options.Select(option => new QuestionOptionInputDto(option.Id, option.Text)).ToArray(),
                     request.CorrectOptionIndex,
                     request.ExplanationText),
                 cancellationToken);
@@ -89,7 +89,7 @@ internal static class QuestionEndpoints
                 new UpdateQuestionCommand(
                     id,
                     request.Text,
-                    request.Options.Select(option => new QuestionOptionInputDto(option.Text)).ToArray(),
+                    request.Options.Select(option => new QuestionOptionInputDto(option.Id, option.Text)).ToArray(),
                     request.CorrectOptionIndex,
                     request.ExplanationText),
                 cancellationToken);

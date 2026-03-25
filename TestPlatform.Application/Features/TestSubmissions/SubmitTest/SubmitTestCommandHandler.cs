@@ -10,6 +10,7 @@ namespace TestPlatform.Application.Features.TestSubmissions.SubmitTest;
 public sealed class SubmitTestCommandHandler(
     ITestRepository testRepository,
     IQuestionRepository questionRepository,
+    IUserRepository userRepository,
     ITestAttemptRepository testAttemptRepository,
     IValidator<SubmitTestCommand> validator) : IRequestHandler<SubmitTestCommand, SubmitTestResultDto>
 {
@@ -20,6 +21,10 @@ public sealed class SubmitTestCommandHandler(
         var test = await testRepository.GetByIdAsync(request.TestId, cancellationToken);
         if (test is null)
             throw new EntityNotFoundException(nameof(Test), request.TestId);
+
+        var userExists = await userRepository.ExistsAsync(request.UserId, cancellationToken);
+        if (!userExists)
+            throw new EntityNotFoundException("User", request.UserId);
 
         var questions = await questionRepository.GetByIdsAsync(test.QuestionIds, cancellationToken);
         var questionLookup = questions.ToDictionary(question => question.Id);

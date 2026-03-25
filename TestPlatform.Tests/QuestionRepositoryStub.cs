@@ -28,6 +28,9 @@ internal sealed class QuestionRepositoryStub(params IEnumerable<Question> seeded
         return Task.FromResult<IReadOnlyList<Question>>(_questions.Where(question => ids.Contains(question.Id)).ToArray());
     }
 
+    public Task<bool> ExistsAsync(Guid questionId, CancellationToken cancellationToken)
+        => Task.FromResult(_questions.Any(question => question.Id == questionId));
+
     public Task UpdateAsync(Question question, CancellationToken cancellationToken)
         => Task.CompletedTask;
 }
