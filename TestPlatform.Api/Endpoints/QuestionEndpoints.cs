@@ -3,6 +3,7 @@ using MediatR;
 using TestPlatform.Api.Contracts.Questions;
 using TestPlatform.Api.Extensions;
 using TestPlatform.Application.Common.Exceptions;
+using TestPlatform.Application.Common.Security;
 using TestPlatform.Application.Features.Questions;
 using TestPlatform.Application.Features.Questions.CreateQuestion;
 using TestPlatform.Application.Features.Questions.DeleteQuestion;
@@ -18,7 +19,8 @@ internal static class QuestionEndpoints
     {
         app.MapPost("/api/questions", CreateQuestionAsync)
             .WithName("CreateQuestion")
-            .WithTags("Questions");
+            .WithTags("Questions")
+            .RequireAuthorization(AuthConstants.Policies.CanWriteApi);
 
         app.MapGet("/api/questions", GetQuestionsAsync)
             .WithName("GetQuestions")
@@ -30,11 +32,13 @@ internal static class QuestionEndpoints
 
         app.MapPut("/api/questions/{id:guid}", UpdateQuestionAsync)
             .WithName("UpdateQuestion")
-            .WithTags("Questions");
+            .WithTags("Questions")
+            .RequireAuthorization(AuthConstants.Policies.CanWriteApi);
 
         app.MapDelete("/api/questions/{id:guid}", DeleteQuestionAsync)
             .WithName("DeleteQuestion")
-            .WithTags("Questions");
+            .WithTags("Questions")
+            .RequireAuthorization(AuthConstants.Policies.CanWriteApi);
 
         return app;
     }

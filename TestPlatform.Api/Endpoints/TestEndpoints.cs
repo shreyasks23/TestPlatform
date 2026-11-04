@@ -3,6 +3,7 @@ using MediatR;
 using TestPlatform.Api.Contracts.Tests;
 using TestPlatform.Api.Extensions;
 using TestPlatform.Application.Common.Exceptions;
+using TestPlatform.Application.Common.Security;
 using TestPlatform.Application.Features.Tests.AddQuestionToTest;
 using TestPlatform.Application.Features.Tests.CreateTest;
 using TestPlatform.Application.Features.Tests.GetTestById;
@@ -17,7 +18,8 @@ internal static class TestEndpoints
     {
         app.MapPost("/api/tests", CreateTestAsync)
             .WithName("CreateTest")
-            .WithTags("Tests");
+            .WithTags("Tests")
+            .RequireAuthorization(AuthConstants.Policies.CanWriteApi);
 
         app.MapGet("/api/tests", GetTestsAsync)
             .WithName("GetTests")
@@ -29,11 +31,13 @@ internal static class TestEndpoints
 
         app.MapPost("/api/tests/{id:guid}/questions", AddQuestionToTestAsync)
             .WithName("AddQuestionToTest")
-            .WithTags("Tests");
+            .WithTags("Tests")
+            .RequireAuthorization(AuthConstants.Policies.CanWriteApi);
 
         app.MapPost("/api/tests/{id:guid}/submit", SubmitTestAsync)
             .WithName("SubmitTest")
-            .WithTags("Tests");
+            .WithTags("Tests")
+            .RequireAuthorization(AuthConstants.Policies.CanWriteApi);
 
         return app;
     }

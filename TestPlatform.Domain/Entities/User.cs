@@ -6,22 +6,28 @@ public sealed class User
     public string Email { get; private set; } = null!;
     public string FirstName { get; private set; } = null!;
     public string LastName { get; private set; } = null!;
+    public string PasswordHash { get; private set; } = null!;
+    public string Role { get; private set; } = null!;
 
     private User() { }
 
-    public User(string email, string firstName, string lastName)
+    public User(string email, string firstName, string lastName, string passwordHash, string role)
     {
         Id = Guid.CreateVersion7();
         Update(email, firstName, lastName);
+        SetPasswordHash(passwordHash);
+        SetRole(role);
     }
 
-    public User(Guid id, string email, string firstName, string lastName)
+    public User(Guid id, string email, string firstName, string lastName, string passwordHash, string role)
     {
         if (id == Guid.Empty)
             throw new ArgumentException("User ID cannot be empty", nameof(id));
 
         Id = id;
         Update(email, firstName, lastName);
+        SetPasswordHash(passwordHash);
+        SetRole(role);
     }
 
     public void Update(string email, string firstName, string lastName)
@@ -37,5 +43,19 @@ public sealed class User
         LastName = string.IsNullOrWhiteSpace(lastName)
             ? throw new ArgumentException("Last name cannot be empty", nameof(lastName))
             : lastName;
+    }
+
+    public void SetPasswordHash(string passwordHash)
+    {
+        PasswordHash = string.IsNullOrWhiteSpace(passwordHash)
+            ? throw new ArgumentException("Password hash cannot be empty", nameof(passwordHash))
+            : passwordHash;
+    }
+
+    public void SetRole(string role)
+    {
+        Role = string.IsNullOrWhiteSpace(role)
+            ? throw new ArgumentException("Role cannot be empty", nameof(role))
+            : role;
     }
 }

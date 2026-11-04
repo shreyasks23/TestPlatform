@@ -1,3 +1,5 @@
+using TestPlatform.Application.Common.Interfaces.Security;
+using TestPlatform.Application.Common.Security;
 using TestPlatform.Domain.Aggregates;
 using TestPlatform.Domain.Entities;
 
@@ -8,16 +10,26 @@ internal static class SeedCatalog
     private static readonly Guid UserId1 = Guid.Parse("00000000-0000-0000-0000-900000000001");
     private static readonly Guid UserId2 = Guid.Parse("00000000-0000-0000-0000-900000000002");
     private static readonly Guid UserId3 = Guid.Parse("00000000-0000-0000-0000-900000000003");
+    private static readonly Guid AdminUserId = Guid.Parse("00000000-0000-0000-0000-900000000004");
     private static readonly Guid TestId1 = Guid.Parse("00000000-0000-0000-0000-910000000001");
     private static readonly Guid TestId2 = Guid.Parse("00000000-0000-0000-0000-910000000002");
+    public const string AdminEmail = "shreyasks@mail.com";
+    public const string AdminPassword = "P@SSw0rd";
 
-    public static IReadOnlyList<User> CreateUsers()
+    public static IReadOnlyList<User> CreateSampleUsers(IPasswordHasher passwordHasher)
         =>
         [
-            new(UserId1, "ada@example.com", "Ada", "Lovelace"),
-            new(UserId2, "grace@example.com", "Grace", "Hopper"),
-            new(UserId3, "alan@example.com", "Alan", "Turing")
+            CreateUser(UserId1, "ada@example.com", "Ada", "Lovelace", passwordHasher),
+            CreateUser(UserId2, "grace@example.com", "Grace", "Hopper", passwordHasher),
+            CreateUser(UserId3, "alan@example.com", "Alan", "Turing", passwordHasher)
         ];
+
+    public static User CreateAdminUser(IPasswordHasher passwordHasher)
+    {
+        var adminUser = new User(AdminUserId, AdminEmail, "Shreyas", "K S", "seed-admin-hash", AuthConstants.Roles.Admin);
+        adminUser.SetPasswordHash(passwordHasher.HashPassword(adminUser, AdminPassword));
+        return adminUser;
+    }
 
     public static IReadOnlyList<Question> CreateQuestions()
     {
@@ -111,5 +123,12 @@ internal static class SeedCatalog
             systemsAndDesign.AddQuestion(question.Id);
 
         return [fundamentals, systemsAndDesign];
+    }
+
+    private static User CreateUser(Guid id, string email, string firstName, string lastName, IPasswordHasher passwordHasher)
+    {
+        var user = new User(id, email, firstName, lastName, "sample-user-hash", AuthConstants.Roles.Admin);
+        user.SetPasswordHash(passwordHasher.HashPassword(user, Guid.NewGuid().ToString("N")));
+        return user;
     }
 }

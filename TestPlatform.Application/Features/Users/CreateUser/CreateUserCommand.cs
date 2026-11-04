@@ -6,4 +6,5 @@ namespace TestPlatform.Application.Features.Users.CreateUser;
 public sealed record CreateUserCommand(
     string Email,
     string FirstName,
-    string LastName) : IRequest<UserDetailsDto>;
+    string LastName,
+    string Password) : IRequest<UserDetailsDto>;

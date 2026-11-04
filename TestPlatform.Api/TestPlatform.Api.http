@@ -1,9 +1,22 @@
 @HostAddress = http://localhost:5209
+@AdminEmail = shreyasks@mail.com
+@AdminPassword = P@SSw0rd
+@AdminAccessToken = replace-me
 @SeedTestId1 = 00000000-0000-0000-0000-910000000001
 @SeedTestId2 = 00000000-0000-0000-0000-910000000002
 @SeedUserId1 = 00000000-0000-0000-0000-900000000001
 @SeedUserId2 = 00000000-0000-0000-0000-900000000002
 @SeedUserId3 = 00000000-0000-0000-0000-900000000003
+
+###
+POST {{HostAddress}}/api/auth/login
+Content-Type: application/json
+Accept: application/json
+
+{
+  "email": "{{AdminEmail}}",
+  "password": "{{AdminPassword}}"
+}
 
 ###
 GET {{HostAddress}}/api/users
@@ -13,11 +26,13 @@ Accept: application/json
 POST {{HostAddress}}/api/users
 Content-Type: application/json
 Accept: application/json
+Authorization: Bearer {{AdminAccessToken}}
 
 {
   "email": "linus@example.com",
   "firstName": "Linus",
-  "lastName": "Torvalds"
+  "lastName": "Torvalds",
+  "password": "P@ssword123"
 }
 
 ###
@@ -28,6 +43,7 @@ Accept: application/json
 POST {{HostAddress}}/api/questions
 Content-Type: application/json
 Accept: application/json
+Authorization: Bearer {{AdminAccessToken}}
 
 {
   "text": "Which data structure uses LIFO ordering?",
@@ -57,6 +73,7 @@ Accept: application/json
 POST {{HostAddress}}/api/tests
 Content-Type: application/json
 Accept: application/json
+Authorization: Bearer {{AdminAccessToken}}
 
 {
   "title": "Custom CS Practice Test"
@@ -76,6 +93,7 @@ Accept: application/json
 POST {{HostAddress}}/api/tests/{{SeedTestId1}}/questions
 Content-Type: application/json
 Accept: application/json
+Authorization: Bearer {{AdminAccessToken}}
 
 {
   "questionId": "00000000-0000-0000-0000-000000000011"
@@ -86,6 +104,7 @@ Accept: application/json
 POST {{HostAddress}}/api/tests/{{SeedTestId1}}/submit
 Content-Type: application/json
 Accept: application/json
+Authorization: Bearer {{AdminAccessToken}}
 
 {
   "userId": "{{SeedUserId1}}",

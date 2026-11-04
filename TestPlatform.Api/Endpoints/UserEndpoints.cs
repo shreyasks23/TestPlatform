@@ -3,6 +3,7 @@ using MediatR;
 using TestPlatform.Api.Contracts.Users;
 using TestPlatform.Api.Extensions;
 using TestPlatform.Application.Common.Exceptions;
+using TestPlatform.Application.Common.Security;
 using TestPlatform.Application.Features.Users.CreateUser;
 using TestPlatform.Application.Features.Users.GetUserById;
 using TestPlatform.Application.Features.Users.GetUsers;
@@ -16,7 +17,8 @@ internal static class UserEndpoints
     {
         app.MapPost("/api/users", CreateUserAsync)
             .WithName("CreateUser")
-            .WithTags("Users");
+            .WithTags("Users")
+            .RequireAuthorization(AuthConstants.Policies.CanWriteApi);
 
         app.MapGet("/api/users", GetUsersAsync)
             .WithName("GetUsers")
@@ -28,7 +30,8 @@ internal static class UserEndpoints
 
         app.MapPut("/api/users/{id:guid}", UpdateUserAsync)
             .WithName("UpdateUser")
-            .WithTags("Users");
+            .WithTags("Users")
+            .RequireAuthorization(AuthConstants.Policies.CanWriteApi);
 
         return app;
     }
@@ -41,7 +44,7 @@ internal static class UserEndpoints
         try
         {
             var result = await sender.Send(
-                new CreateUserCommand(request.Email, request.FirstName, request.LastName),
+                new CreateUserCommand(request.Email, request.FirstName, request.LastName, request.Password),
                 cancellationToken);
 
             return Results.Created($"/api/users/{result.Id}", result);

@@ -1,4 +1,5 @@
 using FluentValidation;
+using TestPlatform.Application.Common.Security;
 using TestPlatform.Application.Features.Users.CreateUser;
 using TestPlatform.Domain.Entities;
 
