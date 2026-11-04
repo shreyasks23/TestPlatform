@@ -9,12 +9,10 @@ The first iteration needs to stay intentionally small while leaving room for fut
 - email and password based login
 - JWT bearer access tokens
 - refresh tokens for longer-lived client sessions
-- dedicated refresh-token persistence
 - one role: `Admin`
 - one permission: `api.write`
 - anonymous read access and protected write access
 - admin-managed user provisioning with an initial password
-- a seeded development admin account for initial system bootstrap
 
 ## Decision
 
@@ -27,15 +25,11 @@ This decision includes the following design choices:
 - Use `POST /api/auth/refresh` to rotate refresh tokens and issue a new token pair.
 - Use `POST /api/auth/revoke` to invalidate a refresh token and force re-authentication.
 - Extend the existing `User` entity with authentication data instead of introducing a separate auth-account aggregate in v1.
-- Persist refresh tokens in a dedicated store rather than directly on the `User` record.
 - Store a single initial role on the user, with `Admin` as the only supported role.
 - Encode the authorization capability as a permission claim, initially `api.write`.
 - Protect all mutating endpoints with a `CanWriteApi` authorization policy.
 - Keep read-only endpoints anonymous in v1.
 - Allow only privileged callers to provision users, including setting the initial password during user creation.
-- Use a 7-day refresh-token lifetime.
-- Persist only a hash of each refresh token, not the raw token value.
-- Seed a development admin user with email `shreyasks@mail.com` for first-login bootstrap.
 
 ## Alternatives considered
 
@@ -69,7 +63,6 @@ An external identity provider would reduce the need to build password handling a
 - The backend must now own password hashing, token issuance, refresh-token lifecycle management, and revocation behavior.
 - Refresh tokens add persistence and rotation complexity compared with access-token-only auth.
 - Extending `User` keeps v1 simple but couples profile and authentication concerns in the same entity.
-- A dedicated refresh-token store avoids repainting the data model when multi-session support expands, at the cost of an extra persistence model and repository flow in v1.
 - Anonymous reads mean the API will still mix protected and unprotected surfaces, which requires clear policy application and test coverage.
 
 ### Security defaults for v1
@@ -77,7 +70,6 @@ An external identity provider would reduce the need to build password handling a
 - Passwords must be stored as hashes, never plaintext.
 - Access tokens should be short-lived.
 - Refresh tokens should be rotated on successful refresh.
-- Refresh tokens must be persisted only as hashes.
 - Authorization policies should validate permissions rather than role names directly.
 
 ## Deferred follow-ups
@@ -90,5 +82,6 @@ The following items are intentionally out of scope for v1 and may be introduced 
 - MFA
 - account lockout and abuse controls
 - multi-role or multi-permission storage
+- richer session management across multiple devices
 - migration to a dedicated auth-account model if separation becomes necessary
 - migration to an external identity provider if operational needs outgrow the first-party model

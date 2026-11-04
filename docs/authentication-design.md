@@ -16,7 +16,6 @@ The chosen model is:
 - email/password authentication
 - JWT bearer access tokens
 - refresh tokens with rotation
-- dedicated refresh-token persistence
 - one role: `Admin`
 - one permission: `api.write`
 
@@ -31,7 +30,7 @@ On successful authentication, the backend:
 - verifies the submitted password against the stored password hash
 - issues a short-lived JWT access token
 - issues a refresh token
-- persists refresh-token state in a dedicated refresh-token store for later validation, rotation, and revocation
+- persists refresh-token state for later validation, rotation, and revocation
 
 The login response returns both tokens and their expiration timestamps.
 
@@ -92,12 +91,12 @@ The refresh token is an opaque long-lived credential stored and validated server
 
 Design expectations:
 
-- store only a hash of the token, never the raw token value
+- store a hashed or otherwise safely persisted form rather than the raw token when practical
 - record expiry metadata
 - record revocation state
 - support rotation so each successful refresh invalidates the prior token
 
-The v1 implementation uses a dedicated refresh-token store rather than attaching a single token directly to the `User` entity. This keeps refresh-token lifecycle concerns isolated and supports future multi-session growth without reworking the user record shape.
+The exact storage shape may start simple in v1 and evolve if multi-device or multi-session requirements grow.
 
 ## Authorization policy
 
@@ -227,17 +226,12 @@ This keeps v1 implementation small and avoids a separate auth-account abstractio
 
 ### Refresh-token persistence
 
-The backend persists refresh-token state in a dedicated store.
+The backend must persist refresh-token state. The exact shape can be one of two patterns:
 
-Expected fields include:
+- a simple implementation tied directly to the user for one active refresh token per user
+- a dedicated refresh-token store for richer multi-session support
 
-- user identifier
-- refresh-token hash
-- created timestamp
-- expiry timestamp
-- revoked timestamp or equivalent revocation state
-
-This design keeps token lifecycle management separate from the user profile and is the chosen base even though v1 only has a single role and permission model.
+The initial implementation may choose the simpler path as long as rotation and revocation are supported and future evolution remains possible.
 
 ## Configuration
 
@@ -256,19 +250,6 @@ Implementation guidance:
 - keep the signing key out of source control outside local development defaults
 - validate issuer and audience consistently across environments
 - prefer short access-token lifetimes and longer refresh-token lifetimes
-- set refresh-token lifetime to 7 days in v1
-
-## Development bootstrap
-
-Development seeding should create an initial admin user so the protected API surface is usable immediately after startup.
-
-Bootstrap credentials for local development:
-
-- email: `shreyasks@mail.com`
-- password: `P@SSw0rd`
-- role: `Admin`
-
-The password should still be persisted as a password hash during seeding rather than inserted as plaintext.
 
 ## Testing considerations
 
@@ -282,7 +263,6 @@ Recommended test scenarios:
 - passwords are never persisted in plaintext
 - refresh succeeds for a valid active refresh token
 - refresh fails for expired, revoked, or rotated tokens
-- refresh-token persistence stores only hashes, not raw refresh-token values
 - revoke prevents future refresh with the same token
 - anonymous callers receive `401` on protected write endpoints
 - callers without the required permission receive `403`
