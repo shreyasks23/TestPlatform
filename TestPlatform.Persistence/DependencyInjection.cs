@@ -17,6 +17,7 @@ public static class DependencyInjection
             options.UseNpgsql(connectionString));
 
         services.AddScoped<IQuestionRepository, QuestionRepository>();
+        services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
         services.AddScoped<ITestRepository, TestRepository>();
         services.AddScoped<ITestAttemptRepository, TestAttemptRepository>();
         services.AddScoped<IUserRepository, UserRepository>();

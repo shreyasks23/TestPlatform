@@ -1,9 +1,22 @@
 @HostAddress = http://localhost:5209
+@AdminEmail = shreyasks@mail.com
+@AdminPassword = P@SSw0rd
+@AdminAccessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIwMDAwMDAwMC0wMDAwLTAwMDAtMDAwMC05MDAwMDAwMDAwMDQiLCJlbWFpbCI6InNocmV5YXNrc0BtYWlsLmNvbSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IkFkbWluIiwicGVybWlzc2lvbiI6ImFwaS53cml0ZSIsIm5iZiI6MTc5Mzc5NDE4MSwiZXhwIjoxNzkzNzk1MDgxLCJpc3MiOiJUZXN0UGxhdGZvcm0uQXBpIiwiYXVkIjoiVGVzdFBsYXRmb3JtLkNsaWVudHMifQ.OLo3Hfa-IA_iQqtclUVaC1W2PzdyhQaaR48dgVvdeO4
 @SeedTestId1 = 00000000-0000-0000-0000-910000000001
 @SeedTestId2 = 00000000-0000-0000-0000-910000000002
 @SeedUserId1 = 00000000-0000-0000-0000-900000000001
 @SeedUserId2 = 00000000-0000-0000-0000-900000000002
 @SeedUserId3 = 00000000-0000-0000-0000-900000000003
+
+###
+POST {{HostAddress}}/api/auth/login
+Content-Type: application/json
+Accept: application/json
+
+{
+  "email": "{{AdminEmail}}",
+  "password": "{{AdminPassword}}"
+}
 
 ###
 GET {{HostAddress}}/api/users
@@ -13,11 +26,13 @@ Accept: application/json
 POST {{HostAddress}}/api/users
 Content-Type: application/json
 Accept: application/json
+Authorization: Bearer {{AdminAccessToken}}
 
 {
   "email": "linus@example.com",
   "firstName": "Linus",
-  "lastName": "Torvalds"
+  "lastName": "Torvalds",
+  "password": "P@ssword123"
 }
 
 ###
@@ -28,6 +43,7 @@ Accept: application/json
 POST {{HostAddress}}/api/questions
 Content-Type: application/json
 Accept: application/json
+Authorization: Bearer {{AdminAccessToken}}
 
 {
   "text": "Which data structure uses LIFO ordering?",
@@ -57,6 +73,7 @@ Accept: application/json
 POST {{HostAddress}}/api/tests
 Content-Type: application/json
 Accept: application/json
+Authorization: Bearer {{AdminAccessToken}}
 
 {
   "title": "Custom CS Practice Test"
@@ -76,6 +93,7 @@ Accept: application/json
 POST {{HostAddress}}/api/tests/{{SeedTestId1}}/questions
 Content-Type: application/json
 Accept: application/json
+Authorization: Bearer {{AdminAccessToken}}
 
 {
   "questionId": "00000000-0000-0000-0000-000000000011"
@@ -86,6 +104,7 @@ Accept: application/json
 POST {{HostAddress}}/api/tests/{{SeedTestId1}}/submit
 Content-Type: application/json
 Accept: application/json
+Authorization: Bearer {{AdminAccessToken}}
 
 {
   "userId": "{{SeedUserId1}}",

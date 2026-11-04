@@ -36,4 +36,14 @@ internal static class ProblemDetailsExtensions
             Status = StatusCodes.Status400BadRequest
         });
     }
+
+    public static IResult ToUnauthorizedProblem(this AuthenticationFailedException exception, string title)
+    {
+        return Results.Problem(new ProblemDetails
+        {
+            Title = title,
+            Detail = exception.Message,
+            Status = StatusCodes.Status401Unauthorized
+        });
+    }
 }
