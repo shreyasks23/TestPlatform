@@ -12,4 +12,4 @@ This directory is the source of truth for humans and coding agents working on Te
 
 ## Repository Boundaries
 
-This repository contains the backend API and tests. The browser client is maintained separately in the sibling [`../TestPlatform.UI`](../../../TestPlatform.UI) repository. The API allows its local Vite origin, `http://localhost:5173`, through CORS. Read the UI's `docs/architecture.md` and `docs/api-contract.md` when changing shared behavior.
+This repository contains the backend API and tests. The browser client is maintained separately in the sibling [`../TestPlatform.UI`](../../../TestPlatform.UI) repository. The API allows local Vite development (`http://localhost:5173`) and preview (`http://localhost:4173`) origins through CORS. Read the UI's `docs/architecture.md` and `docs/api-contract.md` when changing shared behavior.

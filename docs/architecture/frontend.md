@@ -46,6 +46,7 @@ Suggested feature boundaries: `auth`, `tests`, `questions`, `users`, and a share
 ## Local Integration
 
 - API: `http://localhost:5209`
-- Planned frontend origin: `http://localhost:5173`
+- Vite development origin: `http://localhost:5173`
+- Vite preview origin: `http://localhost:4173`
 - Development CORS origin must be updated in `TestPlatform.Api/appsettings.json` if the frontend uses another port.
 - Use seeded development accounts documented in `docs/development.md` only for local work.

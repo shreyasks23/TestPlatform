@@ -57,7 +57,7 @@ builder.Services.AddAuthorizationBuilder()
     .AddPolicy(AuthConstants.Policies.CanReadTests, policy => policy.RequireClaim("permission", AuthConstants.Permissions.ReadTests))
     .AddPolicy(AuthConstants.Policies.CanSubmitTests, policy => policy.RequireClaim("permission", AuthConstants.Permissions.SubmitTests));
 var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
-    ?? ["http://localhost:5173"];
+    ?? ["http://localhost:5173", "http://localhost:4173"];
 builder.Services.AddCors(options => options.AddDefaultPolicy(policy =>
     policy.WithOrigins(allowedOrigins).AllowAnyHeader().AllowAnyMethod()));
 builder.Services.AddApplication();
