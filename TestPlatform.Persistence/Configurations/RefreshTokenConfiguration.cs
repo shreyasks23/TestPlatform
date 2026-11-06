@@ -14,6 +14,9 @@ internal sealed class RefreshTokenConfiguration : IEntityTypeConfiguration<Refre
         builder.Property(refreshToken => refreshToken.UserId)
             .IsRequired();
 
+        builder.Property(refreshToken => refreshToken.SessionId)
+            .IsRequired();
+
         builder.Property(refreshToken => refreshToken.TokenHash)
             .HasMaxLength(128)
             .IsRequired();
@@ -28,6 +31,8 @@ internal sealed class RefreshTokenConfiguration : IEntityTypeConfiguration<Refre
 
         builder.HasIndex(refreshToken => refreshToken.TokenHash)
             .IsUnique();
+
+        builder.HasIndex(refreshToken => new { refreshToken.UserId, refreshToken.SessionId });
 
         builder.HasOne<User>()
             .WithMany()

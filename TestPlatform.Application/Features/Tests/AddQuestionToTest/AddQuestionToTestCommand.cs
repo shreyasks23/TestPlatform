@@ -4,4 +4,6 @@ namespace TestPlatform.Application.Features.Tests.AddQuestionToTest;
 
 public sealed record AddQuestionToTestCommand(
     Guid TestId,
-    Guid QuestionId) : IRequest<AddQuestionToTestResultDto>;
+    Guid QuestionId,
+    Guid ActorId,
+    bool IsAdmin) : IRequest<AddQuestionToTestResultDto>;

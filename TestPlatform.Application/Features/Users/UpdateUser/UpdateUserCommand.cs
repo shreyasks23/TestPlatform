@@ -7,4 +7,5 @@ public sealed record UpdateUserCommand(
     Guid UserId,
     string Email,
     string FirstName,
-    string LastName) : IRequest<UserDetailsDto>;
+    string LastName,
+    string Role) : IRequest<UserDetailsDto>;

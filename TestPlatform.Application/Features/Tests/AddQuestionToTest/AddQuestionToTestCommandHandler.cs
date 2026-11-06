@@ -2,6 +2,7 @@ using FluentValidation;
 using MediatR;
 using TestPlatform.Application.Common.Exceptions;
 using TestPlatform.Application.Common.Interfaces.Repositories;
+using TestPlatform.Application.Common.Security;
 using TestPlatform.Application.Features.Tests.GetTestById;
 using TestPlatform.Domain.Aggregates;
 
@@ -19,6 +20,8 @@ public sealed class AddQuestionToTestCommandHandler(
         var test = await testRepository.GetByIdAsync(request.TestId, cancellationToken);
         if (test is null)
             throw new EntityNotFoundException(nameof(Test), request.TestId);
+
+        OwnershipAuthorization.EnsureOwnerOrAdmin(test.CreatedByUserId, request.ActorId, request.IsAdmin);
 
         var question = await questionRepository.GetByIdAsync(request.QuestionId, cancellationToken);
         if (question is null)

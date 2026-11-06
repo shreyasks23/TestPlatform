@@ -8,16 +8,16 @@ The design goals for v1 are:
 
 - support multiple API clients with a standard bearer-token model
 - keep the first implementation narrow and operationally simple
-- protect mutating endpoints with a single permission
-- leave room to expand roles, permissions, and session management later
+- enforce role-based capabilities through permission claims and resource ownership
+- keep a single role per user while leaving room for future multi-role support
 
 The chosen model is:
 
 - email/password authentication
 - JWT bearer access tokens
 - refresh tokens with rotation
-- one role: `Admin`
-- one permission: `api.write`
+- roles: `TestTaker`, `TestAuthor`, and `Admin`
+- permission claims derived from the assigned role
 
 ## Auth flows
 
@@ -30,7 +30,7 @@ On successful authentication, the backend:
 - verifies the submitted password against the stored password hash
 - issues a short-lived JWT access token
 - issues a refresh token
-- persists refresh-token state for later validation, rotation, and revocation
+- creates a stable server-side session for later validation, rotation, and logout
 
 The login response returns both tokens and their expiration timestamps.
 
@@ -45,6 +45,7 @@ The API validates:
 - audience
 - expiration
 - claims required for authorization
+- the user token version and active server-side session
 
 The access token is the only token used to authorize normal API requests.
 
@@ -61,14 +62,9 @@ The backend:
 
 Refresh-token rotation is part of the default security posture for v1.
 
-### Revoke
+### Logout
 
-Clients use `POST /api/auth/revoke` to invalidate a refresh token.
-
-After revocation:
-
-- the revoked refresh token can no longer be used to obtain a new access token
-- the client must perform a full login again after the current access token expires
+Clients use authenticated `POST /api/auth/logout` to end the current session, or `POST /api/auth/logout-all` to end every session for the authenticated user. Both endpoints immediately invalidate access tokens as well as refresh tokens. Logout-all increments the user's token version, invalidating every previously issued access token.
 
 ## Token and claim model
 
@@ -80,8 +76,10 @@ Required claims for v1:
 
 - `sub`: the user identifier
 - `email`: the authenticated user email
-- `role`: `Admin`
-- `permission`: `api.write`
+- `role`: the user's assigned role
+- `permission`: one or more capabilities derived from the role
+- `sid`: the stable server-side session identifier
+- `token_version`: the user security version required for immediate global logout
 
 Authorization should rely on permission claims instead of hard-coded role checks. The role remains useful for identity context and future expansion, but policy enforcement should be permission-driven.
 
@@ -102,42 +100,23 @@ The exact storage shape may start simple in v1 and evolve if multi-device or mul
 
 ### Role-to-permission mapping
 
-The initial model contains one role and one permission:
+Each user has exactly one role. The access token includes the capabilities granted by that role:
 
-- role: `Admin`
-- permission: `api.write`
-
-In v1, an admin user receives the `api.write` claim in the access token.
+- `TestTaker`: `tests.read`, `tests.submit`
+- `TestAuthor`: `questions.read`, `content.write`, `tests.read`, `tests.submit`
+- `Admin`: all author capabilities plus `users.manage`
 
 ### Policy
 
-All mutating endpoints should require a single authorization policy named `CanWriteApi`.
-
-`CanWriteApi` should validate the presence of the `api.write` permission claim.
+Policies validate the permission claims for user administration, question-bank reads, content writes, test reads, and test submission. Content writes also enforce ownership in the application layer: authors may update or delete only their own questions and tests, while admins may manage all content.
 
 ### Protected endpoints
 
-The following endpoints are protected in v1:
+All application endpoints require a bearer token. Login and refresh remain anonymous.
 
-- `POST /api/users`
-- `PUT /api/users/{id}`
-- `POST /api/questions`
-- `PUT /api/questions/{id}`
-- `DELETE /api/questions/{id}`
-- `POST /api/tests`
-- `POST /api/tests/{id}/questions`
-- `POST /api/tests/{id}/submit`
-
-### Public endpoints
-
-The following endpoint categories remain anonymous in v1:
-
-- `GET /api/users`
-- `GET /api/users/{id}`
-- `GET /api/questions`
-- `GET /api/questions/{id}`
-- `GET /api/tests`
-- `GET /api/tests/{id}`
+- User management is admin-only.
+- The full question bank, including answer keys and explanations, is visible only to authors and admins.
+- All roles can browse tests and submit attempts. The submit API derives the attempt owner from the JWT subject rather than accepting a user ID from the client.
 
 This split keeps the first rollout simple while protecting state-changing behavior.
 
@@ -186,17 +165,9 @@ Response body:
 }
 ```
 
-### Revoke
+### Logout
 
-Request body:
-
-```json
-{
-  "refreshToken": "<opaque-token>"
-}
-```
-
-A successful revoke response may be `204 No Content` or another minimal success response, depending on the eventual endpoint style chosen during implementation.
+`POST /api/auth/logout` and `POST /api/auth/logout-all` require a bearer token, accept no request body, and return `204 No Content`.
 
 ### User creation
 
@@ -207,7 +178,8 @@ Because provisioning is admin-managed in v1, the create-user contract should be 
   "email": "user@example.com",
   "firstName": "Ada",
   "lastName": "Lovelace",
-  "password": "initial-password"
+  "password": "initial-password",
+  "role": "TestTaker"
 }
 ```
 
@@ -217,10 +189,9 @@ Because provisioning is admin-managed in v1, the create-user contract should be 
 
 The existing `User` entity remains the primary identity record and will be extended with authentication data.
 
-Expected additions:
+The user record stores a password hash and one validated role.
 
-- password hash
-- role
+Development data includes `shreyasks@mail.com` as Admin, `ada@example.com` as TestAuthor, and `grace@example.com` as TestTaker. Each uses the development password `P@SSw0rd`.
 
 This keeps v1 implementation small and avoids a separate auth-account abstraction until there is a clear need for one.
 
@@ -263,7 +234,8 @@ Recommended test scenarios:
 - passwords are never persisted in plaintext
 - refresh succeeds for a valid active refresh token
 - refresh fails for expired, revoked, or rotated tokens
-- revoke prevents future refresh with the same token
+- logout invalidates the active session immediately
+- logout-all invalidates every session and access token for the user immediately
 - anonymous callers receive `401` on protected write endpoints
 - callers without the required permission receive `403`
 - anonymous callers can still access public read endpoints
@@ -282,5 +254,5 @@ The following are explicitly excluded from v1:
 - advanced audit history
 - multiple roles per user
 - multiple permissions per role
-- fine-grained per-resource authorization
+- test assignment and publication workflows
 - external identity providers

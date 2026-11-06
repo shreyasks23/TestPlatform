@@ -18,4 +18,6 @@ public sealed class TestQuestionReference
         QuestionId = questionId;
         Order = order;
     }
+
+    public void UpdateOrder(int order) => Order = order;
 }

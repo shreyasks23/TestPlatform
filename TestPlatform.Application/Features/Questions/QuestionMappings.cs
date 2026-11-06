@@ -7,6 +7,7 @@ internal static class QuestionMappings
     public static QuestionDetailsDto ToDetailsDto(Question question)
         => new(
             question.Id,
+            question.CreatedByUserId,
             question.Text,
             question.ExplanationText,
             question.CorrectOptionId,

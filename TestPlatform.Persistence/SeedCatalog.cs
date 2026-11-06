@@ -14,14 +14,16 @@ internal static class SeedCatalog
     private static readonly Guid TestId1 = Guid.Parse("00000000-0000-0000-0000-910000000001");
     private static readonly Guid TestId2 = Guid.Parse("00000000-0000-0000-0000-910000000002");
     public const string AdminEmail = "shreyasks@mail.com";
+    public const string AuthorEmail = "ada@example.com";
+    public const string TestTakerEmail = "grace@example.com";
     public const string AdminPassword = "P@SSw0rd";
 
     public static IReadOnlyList<User> CreateSampleUsers(IPasswordHasher passwordHasher)
         =>
         [
-            CreateUser(UserId1, "ada@example.com", "Ada", "Lovelace", passwordHasher),
-            CreateUser(UserId2, "grace@example.com", "Grace", "Hopper", passwordHasher),
-            CreateUser(UserId3, "alan@example.com", "Alan", "Turing", passwordHasher)
+            CreateUser(UserId1, AuthorEmail, "Ada", "Lovelace", AuthConstants.Roles.TestAuthor, passwordHasher),
+            CreateUser(UserId2, TestTakerEmail, "Grace", "Hopper", AuthConstants.Roles.TestTaker, passwordHasher),
+            CreateUser(UserId3, "alan@example.com", "Alan", "Turing", AuthConstants.Roles.TestTaker, passwordHasher)
         ];
 
     public static User CreateAdminUser(IPasswordHasher passwordHasher)
@@ -105,7 +107,8 @@ internal static class SeedCatalog
                 definition.Text,
                 options,
                 options[definition.CorrectIndex].Id,
-                definition.Explanation);
+                definition.Explanation,
+                AdminUserId);
             questions.Add(question);
         }
 
@@ -114,21 +117,30 @@ internal static class SeedCatalog
 
     public static IReadOnlyList<Test> CreateTests(IReadOnlyList<Question> questions)
     {
-        var fundamentals = new Test(TestId1, "Computer Science Core Assessment");
+        var fundamentals = new Test(TestId1, "Computer Science Core Assessment", AdminUserId);
         foreach (var question in questions.Take(5))
             fundamentals.AddQuestion(question.Id);
 
-        var systemsAndDesign = new Test(TestId2, "General CS Review Assessment");
+        var systemsAndDesign = new Test(TestId2, "General CS Review Assessment", AdminUserId);
         foreach (var question in questions.Skip(5).Take(5))
             systemsAndDesign.AddQuestion(question.Id);
 
         return [fundamentals, systemsAndDesign];
     }
 
-    private static User CreateUser(Guid id, string email, string firstName, string lastName, IPasswordHasher passwordHasher)
+    private static User CreateUser(Guid id, string email, string firstName, string lastName, string role, IPasswordHasher passwordHasher)
     {
-        var user = new User(id, email, firstName, lastName, "sample-user-hash", AuthConstants.Roles.Admin);
-        user.SetPasswordHash(passwordHasher.HashPassword(user, Guid.NewGuid().ToString("N")));
+        var user = new User(id, email, firstName, lastName, "sample-user-hash", role);
+        user.SetPasswordHash(passwordHasher.HashPassword(user, AdminPassword));
         return user;
     }
+
+    public static string GetDevelopmentRole(string email) => email switch
+    {
+        AdminEmail => AuthConstants.Roles.Admin,
+        AuthorEmail => AuthConstants.Roles.TestAuthor,
+        _ => AuthConstants.Roles.TestTaker
+    };
+
+    public static bool IsDevelopmentAccount(string email) => email is AdminEmail or AuthorEmail or TestTakerEmail or "alan@example.com";
 }

@@ -11,5 +11,7 @@ public sealed class AddQuestionToTestCommandValidator : AbstractValidator<AddQue
 
         RuleFor(command => command.QuestionId)
             .NotEmpty();
+
+        RuleFor(command => command.ActorId).NotEmpty();
     }
 }

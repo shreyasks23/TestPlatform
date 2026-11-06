@@ -16,7 +16,8 @@ public sealed class CreateQuestionCommandHandlerTests
                 "What does sealed do?",
                 [new(null, "Allows inheritance"), new(null, "Prevents inheritance")],
                 1,
-                "sealed prevents a class from being inherited."),
+                "sealed prevents a class from being inherited.",
+                Guid.CreateVersion7()),
             CancellationToken.None);
 
         Assert.NotEqual(Guid.Empty, result.Id);
@@ -36,7 +37,8 @@ public sealed class CreateQuestionCommandHandlerTests
                     "Question",
                     [new(null, "A"), new(null, "B")],
                     0,
-                    string.Empty),
+                    string.Empty,
+                    Guid.CreateVersion7()),
                 CancellationToken.None));
     }
 }

@@ -40,11 +40,26 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateLifetime = true,
             ClockSkew = TimeSpan.Zero
         };
+        options.Events = new JwtBearerEvents
+        {
+            OnTokenValidated = async context =>
+            {
+                var validator = context.HttpContext.RequestServices.GetRequiredService<JwtSessionValidator>();
+                if (!await validator.IsValidAsync(context.Principal!, context.HttpContext.RequestAborted))
+                    context.Fail("The access token session is no longer active.");
+            }
+        };
     });
 builder.Services.AddAuthorizationBuilder()
-    .AddPolicy(AuthConstants.Policies.CanWriteApi, policy =>
-        policy.RequireAuthenticatedUser()
-            .RequireClaim("permission", AuthConstants.Permissions.ApiWrite));
+    .AddPolicy(AuthConstants.Policies.CanManageUsers, policy => policy.RequireClaim("permission", AuthConstants.Permissions.ManageUsers))
+    .AddPolicy(AuthConstants.Policies.CanReadQuestionBank, policy => policy.RequireClaim("permission", AuthConstants.Permissions.ReadQuestionBank))
+    .AddPolicy(AuthConstants.Policies.CanWriteContent, policy => policy.RequireClaim("permission", AuthConstants.Permissions.WriteContent))
+    .AddPolicy(AuthConstants.Policies.CanReadTests, policy => policy.RequireClaim("permission", AuthConstants.Permissions.ReadTests))
+    .AddPolicy(AuthConstants.Policies.CanSubmitTests, policy => policy.RequireClaim("permission", AuthConstants.Permissions.SubmitTests));
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+    ?? ["http://localhost:5173"];
+builder.Services.AddCors(options => options.AddDefaultPolicy(policy =>
+    policy.WithOrigins(allowedOrigins).AllowAnyHeader().AllowAnyMethod()));
 builder.Services.AddApplication();
 builder.Services.AddPersistence(builder.Configuration);
 builder.Services.AddSingleton<IDateTimeProvider, SystemDateTimeProvider>();
@@ -52,6 +67,7 @@ builder.Services.AddScoped<IPasswordHasher, AspNetPasswordHasher>();
 builder.Services.AddSingleton<IRefreshTokenService, RefreshTokenService>();
 builder.Services.AddSingleton<IAuthTokenLifetimeProvider, JwtAuthTokenLifetimeProvider>();
 builder.Services.AddScoped<IAccessTokenService, JwtAccessTokenService>();
+builder.Services.AddScoped<JwtSessionValidator>();
 
 var app = builder.Build();
 
@@ -63,6 +79,7 @@ if (app.Environment.IsDevelopment())
 await app.Services.InitializePersistenceAsync(app.Environment.IsDevelopment());
 
 app.UseHttpsRedirection();
+app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 

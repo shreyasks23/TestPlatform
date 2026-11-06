@@ -1,11 +1,13 @@
 using FluentValidation;
 using MediatR;
+using System.Security.Claims;
 using TestPlatform.Api.Contracts.Auth;
 using TestPlatform.Api.Extensions;
 using TestPlatform.Application.Common.Exceptions;
 using TestPlatform.Application.Features.Auth.Login;
+using TestPlatform.Application.Features.Auth.Logout;
+using TestPlatform.Application.Features.Auth.LogoutAll;
 using TestPlatform.Application.Features.Auth.Refresh;
-using TestPlatform.Application.Features.Auth.Revoke;
 
 namespace TestPlatform.Api.Endpoints;
 
@@ -23,10 +25,15 @@ internal static class AuthEndpoints
             .WithTags("Auth")
             .AllowAnonymous();
 
-        app.MapPost("/api/auth/revoke", RevokeAsync)
-            .WithName("RevokeRefreshToken")
+        app.MapPost("/api/auth/logout", LogoutAsync)
+            .WithName("Logout")
             .WithTags("Auth")
-            .AllowAnonymous();
+            .RequireAuthorization();
+
+        app.MapPost("/api/auth/logout-all", LogoutAllAsync)
+            .WithName("LogoutAll")
+            .WithTags("Auth")
+            .RequireAuthorization();
 
         return app;
     }
@@ -69,19 +76,28 @@ internal static class AuthEndpoints
         }
     }
 
-    private static async Task<IResult> RevokeAsync(
-        RevokeRefreshTokenRequest request,
+    private static async Task<IResult> LogoutAsync(
+        ClaimsPrincipal user,
+        ISender sender,
+        CancellationToken cancellationToken)
+    {
+        await sender.Send(new LogoutCommand(user.GetUserId(), user.GetSessionId()), cancellationToken);
+        return Results.NoContent();
+    }
+
+    private static async Task<IResult> LogoutAllAsync(
+        ClaimsPrincipal user,
         ISender sender,
         CancellationToken cancellationToken)
     {
         try
         {
-            await sender.Send(new RevokeRefreshTokenCommand(request.RefreshToken), cancellationToken);
+            await sender.Send(new LogoutAllCommand(user.GetUserId()), cancellationToken);
             return Results.NoContent();
         }
-        catch (ValidationException exception)
+        catch (AuthenticationFailedException exception)
         {
-            return exception.ToValidationProblem();
+            return exception.ToUnauthorizedProblem("Authentication failed");
         }
     }
 }

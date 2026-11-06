@@ -12,12 +12,12 @@ public sealed class GetUsersQueryHandlerTests
             Guid.Parse("00000000-0000-0000-0000-930000000005"),
             "ada@example.com",
             "Ada",
-            "Lovelace");
+            "Lovelace", "hashed::pw", "TestAuthor");
         var secondUser = new User(
             Guid.Parse("00000000-0000-0000-0000-930000000006"),
             "grace@example.com",
             "Grace",
-            "Hopper");
+            "Hopper", "hashed::pw", "TestTaker");
 
         var handler = new GetUsersQueryHandler(new UserRepositoryStub([firstUser, secondUser]));
 

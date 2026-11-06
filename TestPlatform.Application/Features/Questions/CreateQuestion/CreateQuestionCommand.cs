@@ -7,4 +7,5 @@ public sealed record CreateQuestionCommand(
     string Text,
     IReadOnlyCollection<QuestionOptionInputDto> Options,
     int CorrectOptionIndex,
-    string ExplanationText) : IRequest<QuestionDetailsDto>;
+    string ExplanationText,
+    Guid ActorId) : IRequest<QuestionDetailsDto>;

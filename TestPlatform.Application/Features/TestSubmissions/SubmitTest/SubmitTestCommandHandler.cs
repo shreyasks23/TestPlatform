@@ -22,9 +22,9 @@ public sealed class SubmitTestCommandHandler(
         if (test is null)
             throw new EntityNotFoundException(nameof(Test), request.TestId);
 
-        var userExists = await userRepository.ExistsAsync(request.UserId, cancellationToken);
+        var userExists = await userRepository.ExistsAsync(request.ActorId, cancellationToken);
         if (!userExists)
-            throw new EntityNotFoundException("User", request.UserId);
+            throw new EntityNotFoundException("User", request.ActorId);
 
         var questions = await questionRepository.GetByIdsAsync(test.QuestionIds, cancellationToken);
         var questionLookup = questions.ToDictionary(question => question.Id);
@@ -32,7 +32,7 @@ public sealed class SubmitTestCommandHandler(
         if (questionLookup.Count != test.QuestionIds.Count)
             throw new InvalidOperationException("One or more test questions could not be resolved");
 
-        var attempt = new TestAttempt(request.UserId, test.Id);
+        var attempt = new TestAttempt(request.ActorId, test.Id);
 
         foreach (var answer in request.Answers)
             attempt.AddAnswer(answer.QuestionId, answer.SelectedOptionId);

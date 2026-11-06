@@ -2,4 +2,4 @@ using MediatR;
 
 namespace TestPlatform.Application.Features.Questions.DeleteQuestion;
 
-public sealed record DeleteQuestionCommand(Guid QuestionId) : IRequest;
+public sealed record DeleteQuestionCommand(Guid QuestionId, Guid ActorId, bool IsAdmin) : IRequest;

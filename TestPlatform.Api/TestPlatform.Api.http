@@ -1,28 +1,63 @@
 @HostAddress = http://localhost:5209
+@DevelopmentPassword = P@SSw0rd
 @AdminEmail = shreyasks@mail.com
-@AdminPassword = P@SSw0rd
-@AdminAccessToken = replace-me
-@SeedTestId1 = 00000000-0000-0000-0000-910000000001
-@SeedTestId2 = 00000000-0000-0000-0000-910000000002
-@SeedUserId1 = 00000000-0000-0000-0000-900000000001
-@SeedUserId2 = 00000000-0000-0000-0000-900000000002
-@SeedUserId3 = 00000000-0000-0000-0000-900000000003
+@AuthorEmail = ada@example.com
+@TestTakerEmail = grace@example.com
 
-###
+# Run the three login requests below, then paste each accessToken into its matching variable.
+@AdminAccessToken = replace-with-admin-access-token
+@AuthorAccessToken = replace-with-author-access-token
+@TestTakerAccessToken = replace-with-test-taker-access-token
+
+@SeedTestId1 = 00000000-0000-0000-0000-910000000001
+@SeedQuestionId1 = 00000000-0000-0000-0000-000000000001
+@AuthorQuestionId = replace-with-author-question-id
+@AuthorTestId = replace-with-author-test-id
+
+### Admin login
 POST {{HostAddress}}/api/auth/login
 Content-Type: application/json
 Accept: application/json
 
 {
   "email": "{{AdminEmail}}",
-  "password": "{{AdminPassword}}"
+  "password": "{{DevelopmentPassword}}"
 }
 
-###
-GET {{HostAddress}}/api/users
+### Test author login
+POST {{HostAddress}}/api/auth/login
+Content-Type: application/json
 Accept: application/json
 
-###
+{
+  "email": "{{AuthorEmail}}",
+  "password": "{{DevelopmentPassword}}"
+}
+
+### Test taker login
+POST {{HostAddress}}/api/auth/login
+Content-Type: application/json
+Accept: application/json
+
+{
+  "email": "{{TestTakerEmail}}",
+  "password": "{{DevelopmentPassword}}"
+}
+
+### Current-session logout. The access token becomes invalid immediately.
+POST {{HostAddress}}/api/auth/logout
+Authorization: Bearer {{TestTakerAccessToken}}
+
+### Logout from all devices. Every access and refresh token for this user becomes invalid immediately.
+POST {{HostAddress}}/api/auth/logout-all
+Authorization: Bearer {{AuthorAccessToken}}
+
+### Admin: manage users
+GET {{HostAddress}}/api/users
+Accept: application/json
+Authorization: Bearer {{AdminAccessToken}}
+
+### Admin: create a test-taker account
 POST {{HostAddress}}/api/users
 Content-Type: application/json
 Accept: application/json
@@ -32,102 +67,101 @@ Authorization: Bearer {{AdminAccessToken}}
   "email": "linus@example.com",
   "firstName": "Linus",
   "lastName": "Torvalds",
-  "password": "P@ssword123"
+  "password": "P@ssword123",
+  "role": "TestTaker"
 }
 
-###
+### Author: read the question bank, including answer keys
 GET {{HostAddress}}/api/questions
 Accept: application/json
+Authorization: Bearer {{AuthorAccessToken}}
 
-###
+### Author: create a question. Copy the returned id to @AuthorQuestionId.
 POST {{HostAddress}}/api/questions
 Content-Type: application/json
 Accept: application/json
-Authorization: Bearer {{AdminAccessToken}}
+Authorization: Bearer {{AuthorAccessToken}}
 
 {
   "text": "Which data structure uses LIFO ordering?",
   "options": [
-    {
-      "id": null,
-      "text": "Queue"
-    },
-    {
-      "id": null,
-      "text": "Stack"
-    },
-    {
-      "id": null,
-      "text": "Heap"
-    },
-    {
-      "id": null,
-      "text": "Graph"
-    }
+    { "id": null, "text": "Queue" },
+    { "id": null, "text": "Stack" },
+    { "id": null, "text": "Heap" },
+    { "id": null, "text": "Graph" }
   ],
   "correctOptionIndex": 1,
-  "explanationText": "A stack is last-in, first-out, so the most recently pushed item is removed first."
+  "explanationText": "A stack is last-in, first-out."
 }
 
-###
+### Author: create a test. Copy the returned id to @AuthorTestId.
 POST {{HostAddress}}/api/tests
 Content-Type: application/json
 Accept: application/json
-Authorization: Bearer {{AdminAccessToken}}
+Authorization: Bearer {{AuthorAccessToken}}
 
 {
-  "title": "Custom CS Practice Test"
+  "title": "Author's CS Practice Test"
 }
 
-###
-GET {{HostAddress}}/api/tests
-Accept: application/json
-
-###
-# Use one of the seeded test IDs above or a created test ID from /api/tests.
-GET {{HostAddress}}/api/tests/{{SeedTestId1}}
-Accept: application/json
-
-###
-# Attach an existing bank question to a test by question ID.
-POST {{HostAddress}}/api/tests/{{SeedTestId1}}/questions
+### Author: attach any active bank question to an author-owned test.
+# Replace both values with IDs returned above.
+POST {{HostAddress}}/api/tests/{{AuthorTestId}}/questions
 Content-Type: application/json
 Accept: application/json
-Authorization: Bearer {{AdminAccessToken}}
+Authorization: Bearer {{AuthorAccessToken}}
 
 {
-  "questionId": "00000000-0000-0000-0000-000000000011"
+  "questionId": "{{AuthorQuestionId}}"
 }
 
-###
-# First fetch the test and copy the seeded question/option IDs into the answer payload below.
+### Author: update an author-owned test title.
+PUT {{HostAddress}}/api/tests/{{AuthorTestId}}
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{AuthorAccessToken}}
+
+{
+  "title": "Updated Author CS Practice Test"
+}
+
+### Test taker: browse available tests.
+GET {{HostAddress}}/api/tests
+Accept: application/json
+Authorization: Bearer {{TestTakerAccessToken}}
+
+### Test taker: view a test. Question-bank answer keys are not exposed here.
+GET {{HostAddress}}/api/tests/{{SeedTestId1}}
+Accept: application/json
+Authorization: Bearer {{TestTakerAccessToken}}
+
+### Test taker: submit an attempt as the authenticated user.
+# No userId is accepted; the API derives it from the access token.
 POST {{HostAddress}}/api/tests/{{SeedTestId1}}/submit
 Content-Type: application/json
 Accept: application/json
-Authorization: Bearer {{AdminAccessToken}}
+Authorization: Bearer {{TestTakerAccessToken}}
 
 {
-  "userId": "{{SeedUserId1}}",
   "answers": [
-    {
-      "questionId": "00000000-0000-0000-0000-000000000001",
-      "selectedOptionId": "00000000-0000-0000-0000-000000000002"
-    },
-    {
-      "questionId": "00000000-0000-0000-0000-000000000002",
-      "selectedOptionId": "00000000-0000-0000-0000-000000000023"
-    },
-    {
-      "questionId": "00000000-0000-0000-0000-000000000003",
-      "selectedOptionId": "00000000-0000-0000-0000-000000000032"
-    },
-    {
-      "questionId": "00000000-0000-0000-0000-000000000004",
-      "selectedOptionId": "00000000-0000-0000-0000-000000000043"
-    },
-    {
-      "questionId": "00000000-0000-0000-0000-000000000005",
-      "selectedOptionId": "00000000-0000-0000-0000-000000000054"
-    }
+    { "questionId": "00000000-0000-0000-0000-000000000001", "selectedOptionId": "00000000-0000-0000-0000-000000000002" },
+    { "questionId": "00000000-0000-0000-0000-000000000002", "selectedOptionId": "00000000-0000-0000-0000-000000000023" },
+    { "questionId": "00000000-0000-0000-0000-000000000003", "selectedOptionId": "00000000-0000-0000-0000-000000000032" },
+    { "questionId": "00000000-0000-0000-0000-000000000004", "selectedOptionId": "00000000-0000-0000-0000-000000000043" },
+    { "questionId": "00000000-0000-0000-0000-000000000005", "selectedOptionId": "00000000-0000-0000-0000-000000000054" }
   ]
 }
+
+### Expected 403: test takers cannot read the answer-key question bank.
+GET {{HostAddress}}/api/questions
+Accept: application/json
+Authorization: Bearer {{TestTakerAccessToken}}
+
+### Expected 403: test takers cannot administer users.
+GET {{HostAddress}}/api/users
+Accept: application/json
+Authorization: Bearer {{TestTakerAccessToken}}
+
+### Admin: delete any question or test, including author-owned content.
+DELETE {{HostAddress}}/api/questions/{{SeedQuestionId1}}
+Authorization: Bearer {{AdminAccessToken}}

@@ -21,6 +21,7 @@ public sealed class GetTestByIdQueryHandler(
 
         return new TestDetailsDto(
             test.Id,
+            test.CreatedByUserId,
             test.Title,
             test.QuestionIds
                 .Select(questionId =>

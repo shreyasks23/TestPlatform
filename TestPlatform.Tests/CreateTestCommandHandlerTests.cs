@@ -11,7 +11,7 @@ public sealed class CreateTestCommandHandlerTests
         var repository = new TestRepositoryStub([]);
         var handler = new CreateTestCommandHandler(repository, new CreateTestCommandValidator());
 
-        var command = new CreateTestCommand("Algorithms");
+        var command = new CreateTestCommand("Algorithms", Guid.CreateVersion7());
 
         var result = await handler.Handle(command, CancellationToken.None);
 
@@ -28,7 +28,7 @@ public sealed class CreateTestCommandHandlerTests
         var repository = new TestRepositoryStub([]);
         var handler = new CreateTestCommandHandler(repository, new CreateTestCommandValidator());
 
-        var command = new CreateTestCommand(string.Empty);
+        var command = new CreateTestCommand(string.Empty, Guid.CreateVersion7());
 
         await Assert.ThrowsAsync<ValidationException>(() => handler.Handle(command, CancellationToken.None));
         Assert.Null(repository.AddedTest);

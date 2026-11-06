@@ -38,10 +38,10 @@ public sealed class RefreshTokenCommandHandler(
         var refreshTokenExpiresAtUtc = now.Add(tokenLifetimeProvider.RefreshTokenLifetime);
 
         await refreshTokenRepository.AddAsync(
-            new RefreshToken(user.Id, newRefreshToken.Hash, now, refreshTokenExpiresAtUtc),
+            new RefreshToken(user.Id, existingRefreshToken.SessionId, newRefreshToken.Hash, now, refreshTokenExpiresAtUtc),
             cancellationToken);
 
-        var accessToken = accessTokenService.CreateToken(user);
+        var accessToken = accessTokenService.CreateToken(user, existingRefreshToken.SessionId);
 
         return new AuthTokensDto(
             accessToken.Token,

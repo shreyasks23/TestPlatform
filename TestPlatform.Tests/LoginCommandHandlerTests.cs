@@ -23,7 +23,7 @@ public sealed class LoginCommandHandlerTests
 
         var result = await handler.Handle(new LoginCommand("shreyasks@mail.com", "P@SSw0rd"), CancellationToken.None);
 
-        Assert.Equal("access::shreyasks@mail.com", result.AccessToken);
+        Assert.StartsWith("access::shreyasks@mail.com::", result.AccessToken, StringComparison.Ordinal);
         Assert.Equal("refresh-token-1", result.RefreshToken);
         Assert.Equal(DateTimeOffset.Parse("2026-06-16T10:00:00Z"), result.RefreshTokenExpiresAtUtc);
     }

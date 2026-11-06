@@ -2,6 +2,7 @@ using FluentValidation;
 using MediatR;
 using TestPlatform.Application.Common.Exceptions;
 using TestPlatform.Application.Common.Interfaces.Repositories;
+using TestPlatform.Application.Common.Security;
 using TestPlatform.Application.Features.Questions;
 using TestPlatform.Domain.Aggregates;
 using TestPlatform.Domain.Entities;
@@ -19,6 +20,8 @@ public sealed class UpdateQuestionCommandHandler(
         var question = await questionRepository.GetByIdAsync(request.QuestionId, cancellationToken);
         if (question is null)
             throw new EntityNotFoundException(nameof(Question), request.QuestionId);
+
+        OwnershipAuthorization.EnsureOwnerOrAdmin(question.CreatedByUserId, request.ActorId, request.IsAdmin);
 
         var options = request.Options
             .Select(option => option.Id.HasValue

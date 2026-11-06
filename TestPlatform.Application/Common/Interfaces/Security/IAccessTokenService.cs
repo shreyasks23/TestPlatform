@@ -5,5 +5,5 @@ namespace TestPlatform.Application.Common.Interfaces.Security;
 
 public interface IAccessTokenService
 {
-    AccessTokenResult CreateToken(User user);
+    AccessTokenResult CreateToken(User user, Guid sessionId);
 }

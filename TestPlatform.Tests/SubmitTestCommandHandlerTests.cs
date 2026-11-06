@@ -138,16 +138,17 @@ public sealed class SubmitTestCommandHandlerTests
             new Option("A"),
             new Option("B")
         };
-        var firstQuestion = new Question("Question 1", firstOptions, firstOptions[0].Id, "A is correct.");
+        var contentOwnerId = Guid.Parse("00000000-0000-0000-0000-920000000010");
+        var firstQuestion = new Question("Question 1", firstOptions, firstOptions[0].Id, "A is correct.", contentOwnerId);
 
         var secondOptions = new[]
         {
             new Option("True"),
             new Option("False")
         };
-        var secondQuestion = new Question("Question 2", secondOptions, secondOptions[1].Id, "False is correct.");
+        var secondQuestion = new Question("Question 2", secondOptions, secondOptions[1].Id, "False is correct.", contentOwnerId);
 
-        var test = new Test("Sample Test");
+        var test = new Test("Sample Test", contentOwnerId);
         test.AddQuestion(firstQuestion.Id);
         test.AddQuestion(secondQuestion.Id);
 
