@@ -20,6 +20,9 @@ graphify-out/
 *.userosscache
 *.sln.docstates
 *.vs/
+.env
+.env.*
+!.env.example
 
 # NuGet packages
 *.nupkg

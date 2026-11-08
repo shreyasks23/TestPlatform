@@ -71,6 +71,12 @@ builder.Services.AddScoped<JwtSessionValidator>();
 
 var app = builder.Build();
 
+if (args.Contains("--migrate-database", StringComparer.Ordinal))
+{
+    await app.Services.MigrateDatabaseAsync();
+    return;
+}
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
@@ -83,6 +89,7 @@ app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.MapHealthEndpoints();
 app.MapAuthEndpoints();
 app.MapQuestionEndpoints();
 app.MapTestEndpoints();

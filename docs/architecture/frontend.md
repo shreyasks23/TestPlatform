@@ -48,5 +48,6 @@ Suggested feature boundaries: `auth`, `tests`, `questions`, `users`, and a share
 - API: `http://localhost:5209`
 - Vite development origin: `http://localhost:5173`
 - Vite preview origin: `http://localhost:4173`
-- Development CORS origin must be updated in `TestPlatform.Api/appsettings.json` if the frontend uses another port.
+- Vite proxies browser `/api` requests to the local API; direct cross-origin clients must be added to `Cors:AllowedOrigins`.
+- Docker Compose serves the UI on port `5173` and proxies `/api` to the API service.
 - Use seeded development accounts documented in `docs/development.md` only for local work.
