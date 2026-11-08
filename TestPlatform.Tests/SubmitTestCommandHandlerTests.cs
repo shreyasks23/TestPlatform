@@ -164,5 +164,8 @@ public sealed class SubmitTestCommandHandlerTests
             SavedAttempt = attempt;
             return Task.CompletedTask;
         }
+
+        public Task<IReadOnlyList<TestAttempt>> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken)
+            => Task.FromResult<IReadOnlyList<TestAttempt>>([]);
     }
 }

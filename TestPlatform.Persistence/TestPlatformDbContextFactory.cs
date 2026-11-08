@@ -7,8 +7,12 @@ public sealed class TestPlatformDbContextFactory : IDesignTimeDbContextFactory<T
 {
     public TestPlatformDbContext CreateDbContext(string[] args)
     {
+        var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__TestPlatformDatabase")
+            ?? throw new InvalidOperationException(
+                "Set ConnectionStrings__TestPlatformDatabase before running EF Core design-time commands.");
+
         var optionsBuilder = new DbContextOptionsBuilder<TestPlatformDbContext>();
-        optionsBuilder.UseNpgsql("Host=localhost;Port=5432;Database=TestPlatformDb;Username=postgres;Password=postgres");
+        optionsBuilder.UseNpgsql(connectionString);
         return new TestPlatformDbContext(optionsBuilder.Options);
     }
 }

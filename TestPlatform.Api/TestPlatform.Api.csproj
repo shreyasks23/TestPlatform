@@ -1,9 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
-
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>mentormind-testplatform-api</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -21,5 +21,4 @@
     <ProjectReference Include="..\TestPlatform.Application\TestPlatform.Application.csproj" />
     <ProjectReference Include="..\TestPlatform.Persistence\TestPlatform.Persistence.csproj" />
   </ItemGroup>
-
 </Project>

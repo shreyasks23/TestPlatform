@@ -12,6 +12,7 @@ using TestPlatform.Application.Features.Tests.GetTests;
 using TestPlatform.Application.Features.Tests.UpdateTest;
 using TestPlatform.Application.Features.Tests.DeleteTest;
 using TestPlatform.Application.Features.Tests.RemoveQuestionFromTest;
+using TestPlatform.Application.Features.TestAttempts.GetAttempts;
 using TestPlatform.Application.Features.TestSubmissions.SubmitTest;
 
 namespace TestPlatform.Api.Endpoints;
@@ -28,6 +29,11 @@ internal static class TestEndpoints
         app.MapGet("/api/tests", GetTestsAsync)
             .WithName("GetTests")
             .WithTags("Tests")
+            .RequireAuthorization(AuthConstants.Policies.CanReadTests);
+
+        app.MapGet("/api/attempts", GetAttemptsAsync)
+            .WithName("GetAttempts")
+            .WithTags("Attempts")
             .RequireAuthorization(AuthConstants.Policies.CanReadTests);
 
         app.MapGet("/api/tests/{id:guid}", GetTestByIdAsync)
@@ -86,6 +92,15 @@ internal static class TestEndpoints
         CancellationToken cancellationToken)
     {
         var result = await sender.Send(new GetTestsQuery(), cancellationToken);
+        return Results.Ok(result);
+    }
+
+    private static async Task<IResult> GetAttemptsAsync(
+        ClaimsPrincipal user,
+        ISender sender,
+        CancellationToken cancellationToken)
+    {
+        var result = await sender.Send(new GetAttemptsQuery(user.GetUserId()), cancellationToken);
         return Results.Ok(result);
     }
 

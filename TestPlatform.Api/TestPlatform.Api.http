@@ -130,6 +130,11 @@ GET {{HostAddress}}/api/tests
 Accept: application/json
 Authorization: Bearer {{TestTakerAccessToken}}
 
+### Current user: view previous test attempts.
+GET {{HostAddress}}/api/attempts
+Accept: application/json
+Authorization: Bearer {{TestTakerAccessToken}}
+
 ### Test taker: view a test. Question-bank answer keys are not exposed here.
 GET {{HostAddress}}/api/tests/{{SeedTestId1}}
 Accept: application/json

@@ -63,6 +63,7 @@ artifacts/
 # User profile / local settings
 local.settings.json
 appsettings.Development.json
+appsettings.Production.json
 
 # JetBrains Rider
 .idea/
