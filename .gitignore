@@ -3,6 +3,7 @@ bin/
 obj/
 out/
 publish/
+graphify-out/
 
 # Rider
 .idea/

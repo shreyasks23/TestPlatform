@@ -17,4 +17,10 @@ internal sealed class TestAttemptRepository(TestPlatformDbContext dbContext) : I
             .Where(attempt => attempt.UserId == userId)
             .OrderByDescending(attempt => attempt.Id)
             .ToListAsync(cancellationToken);
+
+    public Task<TestAttempt?> GetByIdForUserAsync(Guid attemptId, Guid userId, CancellationToken cancellationToken)
+        => dbContext.TestAttempts
+            .SingleOrDefaultAsync(
+                attempt => attempt.Id == attemptId && attempt.UserId == userId,
+                cancellationToken);
 }

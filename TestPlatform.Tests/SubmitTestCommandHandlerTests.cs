@@ -167,5 +167,8 @@ public sealed class SubmitTestCommandHandlerTests
 
         public Task<IReadOnlyList<TestAttempt>> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken)
             => Task.FromResult<IReadOnlyList<TestAttempt>>([]);
+
+        public Task<TestAttempt?> GetByIdForUserAsync(Guid attemptId, Guid userId, CancellationToken cancellationToken)
+            => Task.FromResult<TestAttempt?>(null);
     }
 }
