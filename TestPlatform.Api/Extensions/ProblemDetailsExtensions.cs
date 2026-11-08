@@ -46,4 +46,14 @@ internal static class ProblemDetailsExtensions
             Status = StatusCodes.Status401Unauthorized
         });
     }
+
+    public static IResult ToForbiddenProblem(this AuthorizationDeniedException exception)
+    {
+        return Results.Problem(new ProblemDetails
+        {
+            Title = "Forbidden",
+            Detail = exception.Message,
+            Status = StatusCodes.Status403Forbidden
+        });
+    }
 }

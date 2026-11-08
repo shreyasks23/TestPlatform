@@ -23,7 +23,8 @@ public sealed class CreateQuestionCommandHandler(
             request.Text,
             options,
             options[request.CorrectOptionIndex].Id,
-            request.ExplanationText);
+            request.ExplanationText,
+            request.ActorId);
 
         await questionRepository.AddAsync(question, cancellationToken);
 

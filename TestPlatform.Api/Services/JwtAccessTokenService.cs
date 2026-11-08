@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using System.Globalization;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using TestPlatform.Api.Configuration;
@@ -17,17 +18,22 @@ internal sealed class JwtAccessTokenService(
 {
     private readonly JwtOptions _options = options.Value;
 
-    public AccessTokenResult CreateToken(User user)
+    public AccessTokenResult CreateToken(User user, Guid sessionId)
     {
+        if (sessionId == Guid.Empty)
+            throw new ArgumentException("Session ID cannot be empty", nameof(sessionId));
+
         var issuedAtUtc = dateTimeProvider.UtcNow;
         var expiresAtUtc = issuedAtUtc.AddMinutes(_options.AccessTokenLifetimeMinutes);
-        var claims = new[]
+        var claims = new List<Claim>
         {
             new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
             new Claim(JwtRegisteredClaimNames.Email, user.Email),
             new Claim(ClaimTypes.Role, user.Role),
-            new Claim("permission", AuthConstants.Permissions.ApiWrite)
+            new Claim(AuthConstants.Claims.SessionId, sessionId.ToString()),
+            new Claim(AuthConstants.Claims.TokenVersion, user.TokenVersion.ToString(CultureInfo.InvariantCulture))
         };
+        claims.AddRange(AuthConstants.GetPermissions(user.Role).Select(permission => new Claim("permission", permission)));
 
         var token = new JwtSecurityToken(
             issuer: _options.Issuer,

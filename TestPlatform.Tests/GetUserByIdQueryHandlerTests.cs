@@ -13,7 +13,7 @@ public sealed class GetUserByIdQueryHandlerTests
             Guid.Parse("00000000-0000-0000-0000-930000000004"),
             "ada@example.com",
             "Ada",
-            "Lovelace");
+            "Lovelace", "hashed::pw", "TestAuthor");
         var handler = new GetUserByIdQueryHandler(new UserRepositoryStub([user]));
 
         var result = await handler.Handle(new GetUserByIdQuery(user.Id), CancellationToken.None);

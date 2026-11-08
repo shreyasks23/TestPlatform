@@ -31,6 +31,10 @@ internal sealed class UserConfiguration : IEntityTypeConfiguration<User>
             .HasMaxLength(50)
             .IsRequired();
 
+        builder.Property(user => user.TokenVersion)
+            .HasDefaultValue(1)
+            .IsRequired();
+
         builder.HasIndex(user => user.Email)
             .IsUnique();
     }

@@ -24,4 +24,10 @@ internal sealed class TestRepositoryStub(params IEnumerable<Test> seededTests) :
 
     public Task UpdateAsync(Test test, CancellationToken cancellationToken)
         => Task.CompletedTask;
+
+    public Task DeleteAsync(Test test, CancellationToken cancellationToken)
+    {
+        _tests.Remove(test);
+        return Task.CompletedTask;
+    }
 }

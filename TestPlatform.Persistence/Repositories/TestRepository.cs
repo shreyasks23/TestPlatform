@@ -24,4 +24,10 @@ internal sealed class TestRepository(TestPlatformDbContext dbContext) : ITestRep
 
     public Task UpdateAsync(Test test, CancellationToken cancellationToken)
         => dbContext.SaveChangesAsync(cancellationToken);
+
+    public async Task DeleteAsync(Test test, CancellationToken cancellationToken)
+    {
+        dbContext.Tests.Remove(test);
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
 }

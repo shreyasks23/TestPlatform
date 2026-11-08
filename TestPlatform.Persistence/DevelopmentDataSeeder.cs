@@ -25,6 +25,14 @@ public sealed class DevelopmentDataSeeder(
             dbContext.Tests.AddRange(tests);
         }
 
+        foreach (var user in await dbContext.Users.ToListAsync(cancellationToken))
+        {
+            user.SetRole(SeedCatalog.GetDevelopmentRole(user.Email));
+
+            if (SeedCatalog.IsDevelopmentAccount(user.Email))
+                user.SetPasswordHash(passwordHasher.HashPassword(user, SeedCatalog.AdminPassword));
+        }
+
         var existingAdmin = await dbContext.Users.SingleOrDefaultAsync(user => user.Email == SeedCatalog.AdminEmail, cancellationToken);
         if (existingAdmin is null)
         {
@@ -32,8 +40,6 @@ public sealed class DevelopmentDataSeeder(
         }
         else
         {
-            existingAdmin.SetRole(AuthConstants.Roles.Admin);
-
             if (string.IsNullOrWhiteSpace(existingAdmin.PasswordHash))
             {
                 existingAdmin.SetPasswordHash(passwordHasher.HashPassword(existingAdmin, SeedCatalog.AdminPassword));

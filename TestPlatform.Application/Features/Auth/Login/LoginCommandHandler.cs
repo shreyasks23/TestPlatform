@@ -31,12 +31,13 @@ public sealed class LoginCommandHandler(
     private async Task<AuthTokensDto> IssueTokensAsync(User user, CancellationToken cancellationToken)
     {
         var now = dateTimeProvider.UtcNow;
-        var accessToken = accessTokenService.CreateToken(user);
+        var sessionId = Guid.CreateVersion7();
+        var accessToken = accessTokenService.CreateToken(user, sessionId);
         var refreshToken = refreshTokenService.GenerateToken();
         var refreshTokenExpiresAtUtc = now.Add(tokenLifetimeProvider.RefreshTokenLifetime);
 
         await refreshTokenRepository.AddAsync(
-            new RefreshToken(user.Id, refreshToken.Hash, now, refreshTokenExpiresAtUtc),
+            new RefreshToken(user.Id, sessionId, refreshToken.Hash, now, refreshTokenExpiresAtUtc),
             cancellationToken);
 
         return new AuthTokensDto(

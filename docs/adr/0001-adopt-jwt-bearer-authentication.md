@@ -9,9 +9,9 @@ The first iteration needs to stay intentionally small while leaving room for fut
 - email and password based login
 - JWT bearer access tokens
 - refresh tokens for longer-lived client sessions
-- one role: `Admin`
-- one permission: `api.write`
-- anonymous read access and protected write access
+- three roles: `TestTaker`, `TestAuthor`, and `Admin`
+- permissions derived from roles and enforced through policies
+- authenticated read access, with question-bank answer keys limited to authors and admins
 - admin-managed user provisioning with an initial password
 
 ## Decision
@@ -23,12 +23,14 @@ This decision includes the following design choices:
 - Use `POST /api/auth/login` for email/password authentication.
 - Issue a short-lived JWT access token and a refresh token after successful login.
 - Use `POST /api/auth/refresh` to rotate refresh tokens and issue a new token pair.
-- Use `POST /api/auth/revoke` to invalidate a refresh token and force re-authentication.
+- Use authenticated `POST /api/auth/logout` for the current session and `POST /api/auth/logout-all` for all sessions.
+- Validate JWT session and token-version claims against persisted state on each authenticated request so logout takes effect immediately.
 - Extend the existing `User` entity with authentication data instead of introducing a separate auth-account aggregate in v1.
-- Store a single initial role on the user, with `Admin` as the only supported role.
-- Encode the authorization capability as a permission claim, initially `api.write`.
-- Protect all mutating endpoints with a `CanWriteApi` authorization policy.
-- Keep read-only endpoints anonymous in v1.
+- Store one validated role on the user: `TestTaker`, `TestAuthor`, or `Admin`.
+- Encode the permissions granted by the role as JWT claims.
+- Enforce policies for user management, question-bank access, content writes, test reads, and test submissions.
+- Enforce question and test ownership for authors; admins can manage all content.
+- Require authentication for all application reads and writes.
 - Allow only privileged callers to provision users, including setting the initial password during user creation.
 
 ## Alternatives considered

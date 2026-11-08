@@ -9,5 +9,7 @@ public sealed class CreateTestCommandValidator : AbstractValidator<CreateTestCom
         RuleFor(command => command.Title)
             .NotEmpty()
             .MaximumLength(200);
+
+        RuleFor(command => command.ActorId).NotEmpty();
     }
 }

@@ -31,6 +31,9 @@ namespace TestPlatform.Persistence.Migrations
                     b.Property<Guid>("CorrectOptionId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid>("CreatedByUserId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("ExplanationText")
                         .IsRequired()
                         .HasMaxLength(2000)
@@ -46,6 +49,8 @@ namespace TestPlatform.Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CreatedByUserId");
+
                     b.ToTable("Questions", (string)null);
                 });
 
@@ -55,12 +60,17 @@ namespace TestPlatform.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<Guid>("CreatedByUserId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CreatedByUserId");
 
                     b.ToTable("Tests", (string)null);
                 });
@@ -103,6 +113,9 @@ namespace TestPlatform.Persistence.Migrations
                     b.Property<DateTimeOffset?>("RevokedAtUtc")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<Guid>("SessionId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("TokenHash")
                         .IsRequired()
                         .HasMaxLength(128)
@@ -116,7 +129,7 @@ namespace TestPlatform.Persistence.Migrations
                     b.HasIndex("TokenHash")
                         .IsUnique();
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("UserId", "SessionId");
 
                     b.ToTable("RefreshTokens", (string)null);
                 });
@@ -152,6 +165,11 @@ namespace TestPlatform.Persistence.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
+                    b.Property<int>("TokenVersion")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1);
+
                     b.HasKey("Id");
 
                     b.HasIndex("Email")
@@ -160,17 +178,14 @@ namespace TestPlatform.Persistence.Migrations
                     b.ToTable("Users", (string)null);
                 });
 
-            modelBuilder.Entity("TestPlatform.Domain.Entities.RefreshToken", b =>
+            modelBuilder.Entity("TestPlatform.Domain.Aggregates.Question", b =>
                 {
                     b.HasOne("TestPlatform.Domain.Entities.User", null)
                         .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-                });
 
-            modelBuilder.Entity("TestPlatform.Domain.Aggregates.Question", b =>
-                {
                     b.OwnsMany("TestPlatform.Domain.Entities.Option", "Options", b1 =>
                         {
                             b1.Property<Guid>("Id")
@@ -204,6 +219,12 @@ namespace TestPlatform.Persistence.Migrations
 
             modelBuilder.Entity("TestPlatform.Domain.Aggregates.Test", b =>
                 {
+                    b.HasOne("TestPlatform.Domain.Entities.User", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.OwnsMany("TestPlatform.Domain.Entities.TestQuestionReference", "QuestionReferences", b1 =>
                         {
                             b1.Property<Guid>("TestId")
@@ -253,6 +274,15 @@ namespace TestPlatform.Persistence.Migrations
                         });
 
                     b.Navigation("Answers");
+                });
+
+            modelBuilder.Entity("TestPlatform.Domain.Entities.RefreshToken", b =>
+                {
+                    b.HasOne("TestPlatform.Domain.Entities.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 #pragma warning restore 612, 618
         }

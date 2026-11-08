@@ -12,6 +12,16 @@ internal sealed class QuestionConfiguration : IEntityTypeConfiguration<Question>
         builder.ToTable("Questions");
         builder.HasKey(question => question.Id);
 
+        builder.Property(question => question.CreatedByUserId)
+            .IsRequired();
+
+        builder.HasIndex(question => question.CreatedByUserId);
+
+        builder.HasOne<User>()
+            .WithMany()
+            .HasForeignKey(question => question.CreatedByUserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         builder.Property(question => question.Text)
             .HasMaxLength(500)
             .IsRequired();

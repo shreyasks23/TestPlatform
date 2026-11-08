@@ -18,20 +18,22 @@ internal static class UserEndpoints
         app.MapPost("/api/users", CreateUserAsync)
             .WithName("CreateUser")
             .WithTags("Users")
-            .RequireAuthorization(AuthConstants.Policies.CanWriteApi);
+            .RequireAuthorization(AuthConstants.Policies.CanManageUsers);
 
         app.MapGet("/api/users", GetUsersAsync)
             .WithName("GetUsers")
-            .WithTags("Users");
+            .WithTags("Users")
+            .RequireAuthorization(AuthConstants.Policies.CanManageUsers);
 
         app.MapGet("/api/users/{id:guid}", GetUserByIdAsync)
             .WithName("GetUserById")
-            .WithTags("Users");
+            .WithTags("Users")
+            .RequireAuthorization(AuthConstants.Policies.CanManageUsers);
 
         app.MapPut("/api/users/{id:guid}", UpdateUserAsync)
             .WithName("UpdateUser")
             .WithTags("Users")
-            .RequireAuthorization(AuthConstants.Policies.CanWriteApi);
+            .RequireAuthorization(AuthConstants.Policies.CanManageUsers);
 
         return app;
     }
@@ -44,7 +46,7 @@ internal static class UserEndpoints
         try
         {
             var result = await sender.Send(
-                new CreateUserCommand(request.Email, request.FirstName, request.LastName, request.Password),
+                new CreateUserCommand(request.Email, request.FirstName, request.LastName, request.Password, request.Role),
                 cancellationToken);
 
             return Results.Created($"/api/users/{result.Id}", result);
@@ -83,7 +85,7 @@ internal static class UserEndpoints
         try
         {
             return Results.Ok(await sender.Send(
-                new UpdateUserCommand(id, request.Email, request.FirstName, request.LastName),
+                new UpdateUserCommand(id, request.Email, request.FirstName, request.LastName, request.Role),
                 cancellationToken));
         }
         catch (ValidationException exception)

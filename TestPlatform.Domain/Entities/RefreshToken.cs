@@ -3,6 +3,7 @@ namespace TestPlatform.Domain.Entities;
 public sealed class RefreshToken
 {
     public Guid Id { get; private set; }
+    public Guid SessionId { get; private set; }
     public Guid UserId { get; private set; }
     public string TokenHash { get; private set; } = null!;
     public DateTimeOffset CreatedAtUtc { get; private set; }
@@ -11,15 +12,18 @@ public sealed class RefreshToken
 
     private RefreshToken() { }
 
-    public RefreshToken(Guid userId, string tokenHash, DateTimeOffset createdAtUtc, DateTimeOffset expiresAtUtc)
+    public RefreshToken(Guid userId, Guid sessionId, string tokenHash, DateTimeOffset createdAtUtc, DateTimeOffset expiresAtUtc)
     {
         if (userId == Guid.Empty)
             throw new ArgumentException("User ID cannot be empty", nameof(userId));
+        if (sessionId == Guid.Empty)
+            throw new ArgumentException("Session ID cannot be empty", nameof(sessionId));
         if (expiresAtUtc <= createdAtUtc)
             throw new ArgumentException("Refresh token expiry must be after creation.", nameof(expiresAtUtc));
 
         Id = Guid.CreateVersion7();
         UserId = userId;
+        SessionId = sessionId;
         TokenHash = string.IsNullOrWhiteSpace(tokenHash)
             ? throw new ArgumentException("Token hash cannot be empty", nameof(tokenHash))
             : tokenHash;

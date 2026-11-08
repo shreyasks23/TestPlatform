@@ -8,45 +8,33 @@ namespace TestPlatform.Tests;
 public sealed class CreateUserCommandHandlerTests
 {
     [Fact]
-    public async Task Handle_WhenCommandIsValid_CreatesAndReturnsUser()
+    public async Task Handle_WhenCommandIsValid_CreatesUserWithRequestedRole()
     {
         var repository = new UserRepositoryStub([]);
-        var handler = new CreateUserCommandHandler(repository, new CreateUserCommandValidator());
+        var handler = new CreateUserCommandHandler(repository, new FakePasswordHasher(), new CreateUserCommandValidator());
 
-        var command = new CreateUserCommand("ada@example.com", "Ada", "Lovelace");
+        var result = await handler.Handle(new CreateUserCommand("ada@example.com", "Ada", "Lovelace", "P@ssword1", AuthConstants.Roles.TestAuthor), CancellationToken.None);
 
-        var result = await handler.Handle(command, CancellationToken.None);
-
-        Assert.NotEqual(Guid.Empty, result.Id);
-        Assert.Equal("ada@example.com", result.Email);
-        Assert.Equal("Ada", result.FirstName);
-        Assert.Equal("Lovelace", result.LastName);
-        Assert.NotNull(repository.AddedUser);
-        Assert.Equal(result.Id, repository.AddedUser!.Id);
+        Assert.Equal(AuthConstants.Roles.TestAuthor, result.Role);
+        Assert.Equal("hashed::P@ssword1", repository.AddedUser!.PasswordHash);
     }
 
     [Fact]
     public async Task Handle_WhenEmailAlreadyExists_ThrowsInvalidOperationException()
     {
-        var existingUser = new User("ada@example.com", "Ada", "Lovelace");
-        var repository = new UserRepositoryStub([existingUser]);
-        var handler = new CreateUserCommandHandler(repository, new CreateUserCommandValidator());
+        var existingUser = new User("ada@example.com", "Ada", "Lovelace", "hashed::pw", AuthConstants.Roles.TestTaker);
+        var handler = new CreateUserCommandHandler(new UserRepositoryStub([existingUser]), new FakePasswordHasher(), new CreateUserCommandValidator());
 
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            handler.Handle(
-                new CreateUserCommand("ada@example.com", "Another", "User"),
-                CancellationToken.None));
+            handler.Handle(new CreateUserCommand("ada@example.com", "Another", "User", "P@ssword1", AuthConstants.Roles.TestTaker), CancellationToken.None));
     }
 
     [Fact]
-    public async Task Handle_WhenEmailIsInvalid_ThrowsValidationException()
+    public async Task Handle_WhenRoleIsInvalid_ThrowsValidationException()
     {
-        var repository = new UserRepositoryStub([]);
-        var handler = new CreateUserCommandHandler(repository, new CreateUserCommandValidator());
+        var handler = new CreateUserCommandHandler(new UserRepositoryStub([]), new FakePasswordHasher(), new CreateUserCommandValidator());
 
         await Assert.ThrowsAsync<ValidationException>(() =>
-            handler.Handle(
-                new CreateUserCommand("not-an-email", "Ada", "Lovelace"),
-                CancellationToken.None));
+            handler.Handle(new CreateUserCommand("ada@example.com", "Ada", "Lovelace", "P@ssword1", "Unknown"), CancellationToken.None));
     }
 }

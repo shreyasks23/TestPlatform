@@ -24,6 +24,7 @@ public sealed class UpdateUserCommandHandler(
             throw new InvalidOperationException($"A user with email '{request.Email}' already exists");
 
         user.Update(request.Email, request.FirstName, request.LastName);
+        user.SetRole(request.Role);
         await userRepository.UpdateAsync(user, cancellationToken);
 
         return UserMappings.ToDetailsDto(user);

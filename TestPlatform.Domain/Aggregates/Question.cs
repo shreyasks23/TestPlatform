@@ -5,6 +5,7 @@ namespace TestPlatform.Domain.Aggregates;
 public sealed class Question
 {
     public Guid Id { get; private set; }
+    public Guid CreatedByUserId { get; private set; }
     public string Text { get; private set; } = null!;
     public string ExplanationText { get; private set; } = null!;
     public bool IsDeleted { get; private set; }
@@ -20,9 +21,11 @@ public sealed class Question
         string text,
         IReadOnlyCollection<Option> options,
         Guid correctOptionId,
-        string explanationText)
+        string explanationText,
+        Guid createdByUserId)
     {
         Id = Guid.CreateVersion7();
+        SetCreator(createdByUserId);
         Update(text, options, correctOptionId, explanationText);
     }
 
@@ -31,12 +34,14 @@ public sealed class Question
         string text,
         IReadOnlyCollection<Option> options,
         Guid correctOptionId,
-        string explanationText)
+        string explanationText,
+        Guid createdByUserId)
     {
         if (id == Guid.Empty)
             throw new ArgumentException("Question ID cannot be empty", nameof(id));
 
         Id = id;
+        SetCreator(createdByUserId);
         Update(text, options, correctOptionId, explanationText);
     }
 
@@ -89,5 +94,13 @@ public sealed class Question
     public void SoftDelete()
     {
         IsDeleted = true;
+    }
+
+    private void SetCreator(Guid createdByUserId)
+    {
+        if (createdByUserId == Guid.Empty)
+            throw new ArgumentException("Creator ID cannot be empty", nameof(createdByUserId));
+
+        CreatedByUserId = createdByUserId;
     }
 }

@@ -11,7 +11,7 @@ public sealed class GetTestsQueryHandler(ITestRepository testRepository)
         var tests = await testRepository.GetAllAsync(cancellationToken);
 
         return tests
-            .Select(test => new TestSummaryDto(test.Id, test.Title, test.QuestionIds.Count))
+            .Select(test => new TestSummaryDto(test.Id, test.CreatedByUserId, test.Title, test.QuestionIds.Count))
             .ToArray();
     }
 }

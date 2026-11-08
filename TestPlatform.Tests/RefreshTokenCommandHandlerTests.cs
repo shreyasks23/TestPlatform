@@ -19,6 +19,7 @@ public sealed class RefreshTokenCommandHandlerTests
             AuthConstants.Roles.Admin);
         var existingRefreshToken = new RefreshToken(
             user.Id,
+            Guid.Parse("00000000-0000-0000-0000-930000000099"),
             "hash::existing-refresh-token",
             DateTimeOffset.Parse("2026-06-09T09:00:00Z"),
             DateTimeOffset.Parse("2026-06-16T09:00:00Z"));
@@ -33,7 +34,7 @@ public sealed class RefreshTokenCommandHandlerTests
 
         var result = await handler.Handle(new RefreshTokenCommand("existing-refresh-token"), CancellationToken.None);
 
-        Assert.Equal("access::shreyasks@mail.com", result.AccessToken);
+        Assert.Equal($"access::shreyasks@mail.com::{existingRefreshToken.SessionId}", result.AccessToken);
         Assert.Equal("refresh-token-1", result.RefreshToken);
         Assert.NotNull(existingRefreshToken.RevokedAtUtc);
     }

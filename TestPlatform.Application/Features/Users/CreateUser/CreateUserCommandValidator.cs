@@ -1,4 +1,5 @@
 using FluentValidation;
+using TestPlatform.Application.Common.Security;
 
 namespace TestPlatform.Application.Features.Users.CreateUser;
 
@@ -23,5 +24,9 @@ public sealed class CreateUserCommandValidator : AbstractValidator<CreateUserCom
             .NotEmpty()
             .MinimumLength(8)
             .MaximumLength(200);
+
+        RuleFor(command => command.Role)
+            .Must(AuthConstants.Roles.All.Contains)
+            .WithMessage("Role is not supported.");
     }
 }

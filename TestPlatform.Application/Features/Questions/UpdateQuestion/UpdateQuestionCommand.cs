@@ -8,4 +8,6 @@ public sealed record UpdateQuestionCommand(
     string Text,
     IReadOnlyCollection<QuestionOptionInputDto> Options,
     int CorrectOptionIndex,
-    string ExplanationText) : IRequest<QuestionDetailsDto>;
+    string ExplanationText,
+    Guid ActorId,
+    bool IsAdmin) : IRequest<QuestionDetailsDto>;

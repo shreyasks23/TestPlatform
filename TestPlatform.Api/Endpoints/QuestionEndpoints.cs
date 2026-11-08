@@ -1,5 +1,6 @@
 using FluentValidation;
 using MediatR;
+using System.Security.Claims;
 using TestPlatform.Api.Contracts.Questions;
 using TestPlatform.Api.Extensions;
 using TestPlatform.Application.Common.Exceptions;
@@ -20,31 +21,34 @@ internal static class QuestionEndpoints
         app.MapPost("/api/questions", CreateQuestionAsync)
             .WithName("CreateQuestion")
             .WithTags("Questions")
-            .RequireAuthorization(AuthConstants.Policies.CanWriteApi);
+            .RequireAuthorization(AuthConstants.Policies.CanWriteContent);
 
         app.MapGet("/api/questions", GetQuestionsAsync)
             .WithName("GetQuestions")
-            .WithTags("Questions");
+            .WithTags("Questions")
+            .RequireAuthorization(AuthConstants.Policies.CanReadQuestionBank);
 
         app.MapGet("/api/questions/{id:guid}", GetQuestionByIdAsync)
             .WithName("GetQuestionById")
-            .WithTags("Questions");
+            .WithTags("Questions")
+            .RequireAuthorization(AuthConstants.Policies.CanReadQuestionBank);
 
         app.MapPut("/api/questions/{id:guid}", UpdateQuestionAsync)
             .WithName("UpdateQuestion")
             .WithTags("Questions")
-            .RequireAuthorization(AuthConstants.Policies.CanWriteApi);
+            .RequireAuthorization(AuthConstants.Policies.CanWriteContent);
 
         app.MapDelete("/api/questions/{id:guid}", DeleteQuestionAsync)
             .WithName("DeleteQuestion")
             .WithTags("Questions")
-            .RequireAuthorization(AuthConstants.Policies.CanWriteApi);
+            .RequireAuthorization(AuthConstants.Policies.CanWriteContent);
 
         return app;
     }
 
     private static async Task<IResult> CreateQuestionAsync(
         CreateQuestionRequest request,
+        ClaimsPrincipal user,
         ISender sender,
         CancellationToken cancellationToken)
     {
@@ -55,7 +59,8 @@ internal static class QuestionEndpoints
                     request.Text,
                     request.Options.Select(option => new QuestionOptionInputDto(option.Id, option.Text)).ToArray(),
                     request.CorrectOptionIndex,
-                    request.ExplanationText),
+                    request.ExplanationText,
+                    user.GetUserId()),
                 cancellationToken);
 
             return Results.Created($"/api/questions/{result.Id}", result);
@@ -84,6 +89,7 @@ internal static class QuestionEndpoints
     private static async Task<IResult> UpdateQuestionAsync(
         Guid id,
         UpdateQuestionRequest request,
+        ClaimsPrincipal user,
         ISender sender,
         CancellationToken cancellationToken)
     {
@@ -95,7 +101,9 @@ internal static class QuestionEndpoints
                     request.Text,
                     request.Options.Select(option => new QuestionOptionInputDto(option.Id, option.Text)).ToArray(),
                     request.CorrectOptionIndex,
-                    request.ExplanationText),
+                    request.ExplanationText,
+                    user.GetUserId(),
+                    user.IsAdmin()),
                 cancellationToken);
 
             return Results.Ok(result);
@@ -108,18 +116,26 @@ internal static class QuestionEndpoints
         {
             return exception.ToNotFoundProblem();
         }
+        catch (AuthorizationDeniedException exception)
+        {
+            return exception.ToForbiddenProblem();
+        }
     }
 
-    private static async Task<IResult> DeleteQuestionAsync(Guid id, ISender sender, CancellationToken cancellationToken)
+    private static async Task<IResult> DeleteQuestionAsync(Guid id, ClaimsPrincipal user, ISender sender, CancellationToken cancellationToken)
     {
         try
         {
-            await sender.Send(new DeleteQuestionCommand(id), cancellationToken);
+            await sender.Send(new DeleteQuestionCommand(id, user.GetUserId(), user.IsAdmin()), cancellationToken);
             return Results.NoContent();
         }
         catch (EntityNotFoundException exception)
         {
             return exception.ToNotFoundProblem();
+        }
+        catch (AuthorizationDeniedException exception)
+        {
+            return exception.ToForbiddenProblem();
         }
     }
 }

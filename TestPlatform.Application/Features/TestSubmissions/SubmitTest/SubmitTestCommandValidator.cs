@@ -9,7 +9,7 @@ public sealed class SubmitTestCommandValidator : AbstractValidator<SubmitTestCom
         RuleFor(command => command.TestId)
             .NotEmpty();
 
-        RuleFor(command => command.UserId)
+        RuleFor(command => command.ActorId)
             .NotEmpty();
 
         RuleFor(command => command.Answers)

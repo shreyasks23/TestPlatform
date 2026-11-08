@@ -12,6 +12,16 @@ internal sealed class TestConfiguration : IEntityTypeConfiguration<Test>
         builder.ToTable("Tests");
         builder.HasKey(test => test.Id);
 
+        builder.Property(test => test.CreatedByUserId)
+            .IsRequired();
+
+        builder.HasIndex(test => test.CreatedByUserId);
+
+        builder.HasOne<User>()
+            .WithMany()
+            .HasForeignKey(test => test.CreatedByUserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         builder.Property(test => test.Title)
             .HasMaxLength(200)
             .IsRequired();

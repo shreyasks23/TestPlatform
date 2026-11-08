@@ -1,3 +1,5 @@
+using TestPlatform.Domain.Security;
+
 namespace TestPlatform.Domain.Entities;
 
 public sealed class User
@@ -8,6 +10,7 @@ public sealed class User
     public string LastName { get; private set; } = null!;
     public string PasswordHash { get; private set; } = null!;
     public string Role { get; private set; } = null!;
+    public int TokenVersion { get; private set; } = 1;
 
     private User() { }
 
@@ -54,8 +57,17 @@ public sealed class User
 
     public void SetRole(string role)
     {
-        Role = string.IsNullOrWhiteSpace(role)
-            ? throw new ArgumentException("Role cannot be empty", nameof(role))
-            : role;
+        if (string.IsNullOrWhiteSpace(role) || !UserRoles.IsSupported(role))
+            throw new ArgumentException("Role is not supported", nameof(role));
+
+        Role = role;
+    }
+
+    public void IncrementTokenVersion()
+    {
+        if (TokenVersion == int.MaxValue)
+            throw new InvalidOperationException("Token version limit has been reached.");
+
+        TokenVersion++;
     }
 }

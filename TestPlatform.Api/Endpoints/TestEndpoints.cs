@@ -1,5 +1,6 @@
 using FluentValidation;
 using MediatR;
+using System.Security.Claims;
 using TestPlatform.Api.Contracts.Tests;
 using TestPlatform.Api.Extensions;
 using TestPlatform.Application.Common.Exceptions;
@@ -8,6 +9,9 @@ using TestPlatform.Application.Features.Tests.AddQuestionToTest;
 using TestPlatform.Application.Features.Tests.CreateTest;
 using TestPlatform.Application.Features.Tests.GetTestById;
 using TestPlatform.Application.Features.Tests.GetTests;
+using TestPlatform.Application.Features.Tests.UpdateTest;
+using TestPlatform.Application.Features.Tests.DeleteTest;
+using TestPlatform.Application.Features.Tests.RemoveQuestionFromTest;
 using TestPlatform.Application.Features.TestSubmissions.SubmitTest;
 
 namespace TestPlatform.Api.Endpoints;
@@ -19,37 +23,55 @@ internal static class TestEndpoints
         app.MapPost("/api/tests", CreateTestAsync)
             .WithName("CreateTest")
             .WithTags("Tests")
-            .RequireAuthorization(AuthConstants.Policies.CanWriteApi);
+            .RequireAuthorization(AuthConstants.Policies.CanWriteContent);
 
         app.MapGet("/api/tests", GetTestsAsync)
             .WithName("GetTests")
-            .WithTags("Tests");
+            .WithTags("Tests")
+            .RequireAuthorization(AuthConstants.Policies.CanReadTests);
 
         app.MapGet("/api/tests/{id:guid}", GetTestByIdAsync)
             .WithName("GetTestById")
-            .WithTags("Tests");
+            .WithTags("Tests")
+            .RequireAuthorization(AuthConstants.Policies.CanReadTests);
 
         app.MapPost("/api/tests/{id:guid}/questions", AddQuestionToTestAsync)
             .WithName("AddQuestionToTest")
             .WithTags("Tests")
-            .RequireAuthorization(AuthConstants.Policies.CanWriteApi);
+            .RequireAuthorization(AuthConstants.Policies.CanWriteContent);
+
+        app.MapPut("/api/tests/{id:guid}", UpdateTestAsync)
+            .WithName("UpdateTest")
+            .WithTags("Tests")
+            .RequireAuthorization(AuthConstants.Policies.CanWriteContent);
+
+        app.MapDelete("/api/tests/{id:guid}", DeleteTestAsync)
+            .WithName("DeleteTest")
+            .WithTags("Tests")
+            .RequireAuthorization(AuthConstants.Policies.CanWriteContent);
+
+        app.MapDelete("/api/tests/{id:guid}/questions/{questionId:guid}", RemoveQuestionFromTestAsync)
+            .WithName("RemoveQuestionFromTest")
+            .WithTags("Tests")
+            .RequireAuthorization(AuthConstants.Policies.CanWriteContent);
 
         app.MapPost("/api/tests/{id:guid}/submit", SubmitTestAsync)
             .WithName("SubmitTest")
             .WithTags("Tests")
-            .RequireAuthorization(AuthConstants.Policies.CanWriteApi);
+            .RequireAuthorization(AuthConstants.Policies.CanSubmitTests);
 
         return app;
     }
 
     private static async Task<IResult> CreateTestAsync(
         CreateTestRequest request,
+        ClaimsPrincipal user,
         ISender sender,
         CancellationToken cancellationToken)
     {
         try
         {
-            var command = new CreateTestCommand(request.Title);
+            var command = new CreateTestCommand(request.Title, user.GetUserId());
             var result = await sender.Send(command, cancellationToken);
             return Results.Created($"/api/tests/{result.Id}", result);
         }
@@ -86,6 +108,7 @@ internal static class TestEndpoints
     private static async Task<IResult> AddQuestionToTestAsync(
         Guid id,
         AddQuestionToTestRequest request,
+        ClaimsPrincipal user,
         ISender sender,
         CancellationToken cancellationToken)
     {
@@ -93,7 +116,9 @@ internal static class TestEndpoints
         {
             var command = new AddQuestionToTestCommand(
                 id,
-                request.QuestionId);
+                request.QuestionId,
+                user.GetUserId(),
+                user.IsAdmin());
 
             var result = await sender.Send(command, cancellationToken);
             return Results.Ok(result);
@@ -110,11 +135,89 @@ internal static class TestEndpoints
         {
             return exception.ToBadRequestProblem("Invalid test question");
         }
+        catch (AuthorizationDeniedException exception)
+        {
+            return exception.ToForbiddenProblem();
+        }
+    }
+
+    private static async Task<IResult> UpdateTestAsync(
+        Guid id,
+        UpdateTestRequest request,
+        ClaimsPrincipal user,
+        ISender sender,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var result = await sender.Send(new UpdateTestCommand(id, request.Title, user.GetUserId(), user.IsAdmin()), cancellationToken);
+            return Results.Ok(result);
+        }
+        catch (ValidationException exception)
+        {
+            return exception.ToValidationProblem();
+        }
+        catch (EntityNotFoundException exception)
+        {
+            return exception.ToNotFoundProblem();
+        }
+        catch (AuthorizationDeniedException exception)
+        {
+            return exception.ToForbiddenProblem();
+        }
+    }
+
+    private static async Task<IResult> DeleteTestAsync(
+        Guid id,
+        ClaimsPrincipal user,
+        ISender sender,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            await sender.Send(new DeleteTestCommand(id, user.GetUserId(), user.IsAdmin()), cancellationToken);
+            return Results.NoContent();
+        }
+        catch (EntityNotFoundException exception)
+        {
+            return exception.ToNotFoundProblem();
+        }
+        catch (AuthorizationDeniedException exception)
+        {
+            return exception.ToForbiddenProblem();
+        }
+    }
+
+    private static async Task<IResult> RemoveQuestionFromTestAsync(
+        Guid id,
+        Guid questionId,
+        ClaimsPrincipal user,
+        ISender sender,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            await sender.Send(new RemoveQuestionFromTestCommand(id, questionId, user.GetUserId(), user.IsAdmin()), cancellationToken);
+            return Results.NoContent();
+        }
+        catch (EntityNotFoundException exception)
+        {
+            return exception.ToNotFoundProblem();
+        }
+        catch (InvalidOperationException exception)
+        {
+            return exception.ToBadRequestProblem("Invalid test question");
+        }
+        catch (AuthorizationDeniedException exception)
+        {
+            return exception.ToForbiddenProblem();
+        }
     }
 
     private static async Task<IResult> SubmitTestAsync(
         Guid id,
         SubmitTestRequest request,
+        ClaimsPrincipal user,
         ISender sender,
         CancellationToken cancellationToken)
     {
@@ -122,7 +225,7 @@ internal static class TestEndpoints
         {
             var command = new SubmitTestCommand(
                 id,
-                request.UserId,
+                user.GetUserId(),
                 request.Answers
                     .Select(answer => new SubmitTestAnswerDto(answer.QuestionId, answer.SelectedOptionId))
                     .ToArray());

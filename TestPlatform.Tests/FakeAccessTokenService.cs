@@ -6,6 +6,6 @@ namespace TestPlatform.Tests;
 
 internal sealed class FakeAccessTokenService(DateTimeOffset expiresAtUtc) : IAccessTokenService
 {
-    public AccessTokenResult CreateToken(User user)
-        => new($"access::{user.Email}", expiresAtUtc);
+    public AccessTokenResult CreateToken(User user, Guid sessionId)
+        => new($"access::{user.Email}::{sessionId}", expiresAtUtc);
 }

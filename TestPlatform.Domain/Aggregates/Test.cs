@@ -5,6 +5,7 @@ namespace TestPlatform.Domain.Aggregates;
 public sealed class Test
 {
     public Guid Id { get; } = Guid.CreateVersion7();
+    public Guid CreatedByUserId { get; private set; }
     public string Title { get; private set; } = null!;
 
     private readonly List<TestQuestionReference> _questionReferences = [];
@@ -16,14 +17,15 @@ public sealed class Test
 
     private Test() { }
 
-    public Test(string title)
+    public Test(string title, Guid createdByUserId)
     {
+        SetCreator(createdByUserId);
         Title = string.IsNullOrWhiteSpace(title)
             ? throw new ArgumentException("Title cannot be empty", nameof(title))
             : title;
     }
 
-    public Test(Guid id, string title) : this(title)
+    public Test(Guid id, string title, Guid createdByUserId) : this(title, createdByUserId)
     {
         if (id == Guid.Empty)
             throw new ArgumentException("Test ID cannot be empty", nameof(id));
@@ -40,5 +42,30 @@ public sealed class Test
             throw new InvalidOperationException("Question already added to test");
 
         _questionReferences.Add(new TestQuestionReference(questionId, _questionReferences.Count));
+    }
+
+    public void UpdateTitle(string title)
+    {
+        Title = string.IsNullOrWhiteSpace(title)
+            ? throw new ArgumentException("Title cannot be empty", nameof(title))
+            : title;
+    }
+
+    public void RemoveQuestion(Guid questionId)
+    {
+        var reference = _questionReferences.SingleOrDefault(item => item.QuestionId == questionId)
+            ?? throw new InvalidOperationException("Question is not attached to this test");
+
+        _questionReferences.Remove(reference);
+        for (var index = 0; index < _questionReferences.Count; index++)
+            _questionReferences[index].UpdateOrder(index);
+    }
+
+    private void SetCreator(Guid createdByUserId)
+    {
+        if (createdByUserId == Guid.Empty)
+            throw new ArgumentException("Creator ID cannot be empty", nameof(createdByUserId));
+
+        CreatedByUserId = createdByUserId;
     }
 }

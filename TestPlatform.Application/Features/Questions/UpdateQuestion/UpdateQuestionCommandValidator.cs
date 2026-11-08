@@ -18,6 +18,8 @@ public sealed class UpdateQuestionCommandValidator : AbstractValidator<UpdateQue
             .NotEmpty()
             .MaximumLength(2000);
 
+        RuleFor(command => command.ActorId).NotEmpty();
+
         RuleFor(command => command.Options)
             .NotNull()
             .Must(options => options.Count >= 2)
