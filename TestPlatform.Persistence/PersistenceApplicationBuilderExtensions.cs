@@ -10,12 +10,12 @@ public static class PersistenceApplicationBuilderExtensions
         using var scope = services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<TestPlatformDbContext>();
 
+        if (!isDevelopment)
+            return;
+
         await dbContext.Database.MigrateAsync();
 
-        if (isDevelopment)
-        {
-            var seeder = scope.ServiceProvider.GetRequiredService<DevelopmentDataSeeder>();
-            await seeder.SeedAsync();
-        }
+        var seeder = scope.ServiceProvider.GetRequiredService<DevelopmentDataSeeder>();
+        await seeder.SeedAsync();
     }
 }

@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using TestPlatform.Application.Common.Interfaces.Repositories;
 using TestPlatform.Domain.Aggregates;
 
@@ -10,4 +11,10 @@ internal sealed class TestAttemptRepository(TestPlatformDbContext dbContext) : I
         dbContext.TestAttempts.Add(attempt);
         await dbContext.SaveChangesAsync(cancellationToken);
     }
+
+    public async Task<IReadOnlyList<TestAttempt>> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken)
+        => await dbContext.TestAttempts
+            .Where(attempt => attempt.UserId == userId)
+            .OrderByDescending(attempt => attempt.Id)
+            .ToListAsync(cancellationToken);
 }

@@ -17,6 +17,7 @@
 | Questions | `GET/POST /api/questions`, `GET/PUT/DELETE /api/questions/{id}` | Read: Author/Admin. Mutate: owner/Admin. |
 | Tests | `GET/POST /api/tests`, `GET/PUT/DELETE /api/tests/{id}` | Read: all roles. Mutate: owner/Admin. |
 | Test questions | `POST /api/tests/{id}/questions`, `DELETE /api/tests/{id}/questions/{questionId}` | Test owner/Admin |
+| Attempts | `GET /api/attempts` | All roles; returns only the authenticated user's attempt summaries. |
 | Submission | `POST /api/tests/{id}/submit` | All roles; submitter comes from JWT, never request JSON. |
 
 ## Token Contract
