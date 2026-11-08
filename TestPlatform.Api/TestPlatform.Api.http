@@ -13,6 +13,7 @@
 @SeedQuestionId1 = 00000000-0000-0000-0000-000000000001
 @AuthorQuestionId = replace-with-author-question-id
 @AuthorTestId = replace-with-author-test-id
+@AttemptId = replace-with-attempt-id
 
 ### Admin login
 POST {{HostAddress}}/api/auth/login
@@ -132,6 +133,11 @@ Authorization: Bearer {{TestTakerAccessToken}}
 
 ### Current user: view previous test attempts.
 GET {{HostAddress}}/api/attempts
+Accept: application/json
+Authorization: Bearer {{TestTakerAccessToken}}
+
+### Current user: review a specific attempt.
+GET {{HostAddress}}/api/attempts/{{AttemptId}}
 Accept: application/json
 Authorization: Bearer {{TestTakerAccessToken}}
 

@@ -48,5 +48,11 @@ public sealed class GetAttemptsQueryHandlerTests
             RequestedUserId = userId;
             return Task.FromResult(attempts);
         }
+
+        public Task<TestAttempt?> GetByIdForUserAsync(
+            Guid attemptId,
+            Guid userId,
+            CancellationToken cancellationToken)
+            => Task.FromResult<TestAttempt?>(null);
     }
 }
