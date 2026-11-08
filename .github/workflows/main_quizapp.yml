@@ -1,4 +1,4 @@
-name: Build and deploy ASP.NET Core app to Azure Web App
+name: Build and manually deploy ASP.NET Core app to Azure Web App
 
 on:
   push:
@@ -6,6 +6,12 @@ on:
   pull_request:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      deploy:
+        description: Deploy this build to the Azure Web App
+        type: boolean
+        required: true
+        default: false
 
 jobs:
   build:
@@ -31,7 +37,7 @@ jobs:
           path: ${{ env.DOTNET_ROOT }}/myapp
 
   deploy:
-    if: github.event_name == 'push'
+    if: github.event_name == 'workflow_dispatch' && inputs.deploy
     runs-on: windows-latest
     needs: build
     permissions:

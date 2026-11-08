@@ -18,4 +18,11 @@ public static class PersistenceApplicationBuilderExtensions
         var seeder = scope.ServiceProvider.GetRequiredService<DevelopmentDataSeeder>();
         await seeder.SeedAsync();
     }
+
+    public static async Task MigrateDatabaseAsync(this IServiceProvider services)
+    {
+        await using var scope = services.CreateAsyncScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<TestPlatformDbContext>();
+        await dbContext.Database.MigrateAsync();
+    }
 }

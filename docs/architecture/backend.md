@@ -39,6 +39,8 @@ Route policies establish broad capability. `OwnershipAuthorization.EnsureOwnerOr
 
 PostgreSQL is configured by `ConnectionStrings:TestPlatformDatabase`. Development startup calls `Database.MigrateAsync()` and seeds data. The seeder is development-only; do not add production defaults or credentials to it.
 
+The API Docker image listens on port `8080`. `/healthz` is an anonymous database-connectivity probe for the container platform. The API supports a one-off `--migrate-database` command that applies pending migrations and exits without seeding; run it once as a deployment step before updating API replicas, not in every production replica.
+
 After changing an EF model:
 
 ```bash

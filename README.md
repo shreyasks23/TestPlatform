@@ -13,11 +13,20 @@ TestPlatform is the .NET 10 assessment API. It manages users, question banks, te
 
 ## Local Quick Start
 
-Prerequisites: .NET SDK 10 and PostgreSQL running at `localhost:5432` with database credentials matching `TestPlatform.Api/appsettings.json`.
+With the sibling `../TestPlatform.UI` repository checked out, start the full UI, API, and PostgreSQL stack from this repository root:
+
+```bash
+cp -n .env.example .env
+docker compose up --build
+```
+
+Open the UI at `http://localhost:5173`; the API is available at `http://localhost:5209`. Development startup applies pending migrations and seeds role-specific development accounts. PostgreSQL data persists in a named volume; `docker compose down -v` deletes it.
+
+For native API development, use .NET SDK 10 and PostgreSQL:
 
 ```bash
 dotnet run --project TestPlatform.Api --launch-profile http
 dotnet test TestPlatform.slnx
 ```
 
-The API runs at `http://localhost:5209`. Development startup applies pending migrations and seeds role-specific development accounts. Use `TestPlatform.Api/TestPlatform.Api.http` for end-to-end API requests.
+The API runs at `http://localhost:5209`. Use `TestPlatform.Api/TestPlatform.Api.http` for end-to-end API requests.

@@ -9,12 +9,25 @@
 
 ## Run and Test
 
+To run the UI, API, and PostgreSQL together in Docker, check out both repositories as siblings and run from the backend repository root:
+
+```bash
+cp -n .env.example .env
+docker compose up --build
+```
+
+Open the UI at `http://localhost:5173`; the API is also available at `http://localhost:5209`. The Compose stack uses Development configuration, applies migrations, and seeds development accounts. PostgreSQL data persists in a named volume; `docker compose down -v` deletes it.
+
+For native development:
+
 ```bash
 dotnet run --project TestPlatform.Api --launch-profile http
 dotnet test TestPlatform.slnx --no-restore
 ```
 
 The HTTP profile serves the API at `http://localhost:5209`. In Development it runs pending EF migrations and seeds data.
+
+For a controlled non-development migration step, run the API image with `--migrate-database`; it applies EF migrations and exits without starting the web server or seeding development data. Do not set this argument on the regular API replicas.
 
 ## Seed Accounts
 
