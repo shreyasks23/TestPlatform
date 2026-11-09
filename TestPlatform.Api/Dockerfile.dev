@@ -1,0 +1,8 @@
+FROM mcr.microsoft.com/dotnet/sdk:10.0.201
+
+WORKDIR /src
+ENV ASPNETCORE_HTTP_PORTS=8080
+ENV DOTNET_USE_POLLING_FILE_WATCHER=true
+EXPOSE 8080
+
+CMD ["dotnet", "watch", "--non-interactive", "--project", "TestPlatform.Api/TestPlatform.Api.csproj", "run", "--no-launch-profile", "--urls", "http://0.0.0.0:8080"]

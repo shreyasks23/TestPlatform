@@ -45,9 +45,9 @@ Suggested feature boundaries: `auth`, `tests`, `questions`, `users`, and a share
 
 ## Local Integration
 
-- API: `http://localhost:5209`
+- API: `http://localhost:8080` when started through Docker Compose; `http://localhost:5209` for the native HTTP launch profile.
 - Vite development origin: `http://localhost:5173`
 - Vite preview origin: `http://localhost:4173`
 - Vite proxies browser `/api` requests to the local API; direct cross-origin clients must be added to `Cors:AllowedOrigins`.
-- Docker Compose serves the UI on port `5173` and proxies `/api` to the API service.
+- Run Vite natively at port `5173`; it proxies `/api` to the Docker API at port `8080` by default.
 - Use seeded development accounts documented in `docs/development.md` only for local work.

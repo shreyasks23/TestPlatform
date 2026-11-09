@@ -84,7 +84,11 @@ if (app.Environment.IsDevelopment())
 
 await app.Services.InitializePersistenceAsync(app.Environment.IsDevelopment());
 
-app.UseHttpsRedirection();
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
+
 app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
