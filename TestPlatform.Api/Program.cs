@@ -1,6 +1,7 @@
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenTelemetry;
 using TestPlatform.Api.Configuration;
 using TestPlatform.Api.Endpoints;
 using TestPlatform.Api.Services;
@@ -10,6 +11,9 @@ using TestPlatform.Application.Common.Security;
 using TestPlatform.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Logging.ClearProviders();
+builder.Logging.AddJsonConsole();
 
 builder.Services.AddOptions<JwtOptions>()
     .Bind(builder.Configuration.GetSection(JwtOptions.SectionName))
@@ -24,6 +28,8 @@ builder.Services.AddOptions<JwtOptions>()
 
 var jwtOptions = builder.Configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>()
     ?? throw new InvalidOperationException("JWT configuration is missing.");
+if (string.IsNullOrWhiteSpace(jwtOptions.SigningKey))
+    throw new InvalidOperationException("Jwt:SigningKey must be configured.");
 
 builder.Services.AddOpenApi();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -57,9 +63,15 @@ builder.Services.AddAuthorizationBuilder()
     .AddPolicy(AuthConstants.Policies.CanReadTests, policy => policy.RequireClaim("permission", AuthConstants.Permissions.ReadTests))
     .AddPolicy(AuthConstants.Policies.CanSubmitTests, policy => policy.RequireClaim("permission", AuthConstants.Permissions.SubmitTests));
 var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
-    ?? ["http://localhost:5173", "http://localhost:4173"];
+    ?? (builder.Environment.IsDevelopment()
+        ? ["http://localhost:5173", "http://localhost:4173"]
+        : []);
+if (!builder.Environment.IsDevelopment() && allowedOrigins.Length == 0)
+    throw new InvalidOperationException("Configure at least one Cors:AllowedOrigins value outside Development.");
 builder.Services.AddCors(options => options.AddDefaultPolicy(policy =>
     policy.WithOrigins(allowedOrigins).AllowAnyHeader().AllowAnyMethod()));
+if (!string.IsNullOrWhiteSpace(builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"]))
+    builder.UseMicrosoftOpenTelemetry(options => options.Exporters = ExportTarget.AzureMonitor);
 builder.Services.AddApplication();
 builder.Services.AddPersistence(builder.Configuration);
 builder.Services.AddSingleton<IDateTimeProvider, SystemDateTimeProvider>();
@@ -100,3 +112,5 @@ app.MapTestEndpoints();
 app.MapUserEndpoints();
 
 app.Run();
+
+public partial class Program { }

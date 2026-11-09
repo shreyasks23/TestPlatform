@@ -16,7 +16,7 @@
 @AttemptId = replace-with-attempt-id
 
 ### Health check
-GET {{HostAddress}}/healthz
+GET {{HostAddress}}/health
 
 ### Admin login
 POST {{HostAddress}}/api/auth/login
