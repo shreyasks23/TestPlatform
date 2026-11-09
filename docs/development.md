@@ -14,6 +14,7 @@ Create the local environment file and start the API and PostgreSQL from the back
 
 ```bash
 cp -n .env.example .env
+# Set POSTGRES_PASSWORD and JWT_SIGNING_KEY in .env before starting Compose.
 docker compose up --build
 ```
 
@@ -34,6 +35,8 @@ Use `docker compose logs -f` to view logs and `docker compose ps` to check datab
 For native development:
 
 ```bash
+dotnet user-secrets set "ConnectionStrings:TestPlatformDatabase" "Host=localhost;Port=5432;Database=TestPlatformDb;Username=postgres;Password=<local-password>" --project TestPlatform.Api
+dotnet user-secrets set "Jwt:SigningKey" "<random-local-signing-key>" --project TestPlatform.Api
 dotnet run --project TestPlatform.Api --launch-profile http
 dotnet test TestPlatform.slnx --no-restore
 ```
@@ -45,6 +48,19 @@ For local Docker development, migrations are applied automatically on API startu
 ## Production Deployment
 
 Compose is not used in production. Deploy the Vite `dist` output to Azure Static Web Apps, publish the API with `dotnet publish` to Azure App Service, and configure App Service to connect to managed Azure Database for PostgreSQL. Set production connection strings, JWT signing keys, and the exact frontend CORS origin through Azure settings/Key Vault; never use the local `.env` values in Azure.
+
+Set these App Service application settings for the API:
+
+- `ASPNETCORE_ENVIRONMENT=Production`
+- `ConnectionStrings__TestPlatformDatabase`
+- `Jwt__Issuer` and `Jwt__Audience`, matching the values used to issue and validate tokens
+- `Jwt__SigningKey`, supplied as a Key Vault reference
+- `Cors__AllowedOrigins__0`, set to the exact HTTPS Static Web Apps origin (add indexed entries for any additional origins)
+- `APPLICATIONINSIGHTS_CONNECTION_STRING`
+
+Keep the Static Web Apps API URL configurable with the `VITE_API_BASE_URL` GitHub Actions variable in the UI repository. It should be the App Service API origin, without a trailing slash; the corresponding CORS value is the UI origin, not the API URL. The UI workflow passes that variable to its build. If the variable is unset, the client retains its same-origin `/api` behavior.
+
+The API emits JSON console logs and sends OpenTelemetry telemetry to Application Insights when `APPLICATIONINSIGHTS_CONNECTION_STRING` is configured. App Service settings can use Key Vault references for secrets; do not copy local `.env` values into Azure. PostgreSQL data is managed by Azure Database for PostgreSQL, not the Compose named volume.
 
 ## Seed Accounts
 
@@ -69,6 +85,7 @@ git diff --check
 
 ## Configuration Hygiene
 
-- `appsettings.json` contains development-only database and JWT values. Replace them with secret-managed configuration before deployment.
-- Keep `Jwt:SigningKey` out of source control in non-development environments.
+- `appsettings.json` contains non-secret JWT issuer/audience defaults only. Development database credentials and signing keys belong in .NET user-secrets or the ignored local `.env`, not checked-in settings.
+- Development uses only the local Vite origins; non-development environments must configure an explicit `Cors:AllowedOrigins` list.
+- `/health` and the backwards-compatible `/healthz` return `503` when PostgreSQL cannot be reached.
 - Add frontend origins to `Cors:AllowedOrigins` deliberately; do not use an allow-any-origin policy with bearer authentication.
